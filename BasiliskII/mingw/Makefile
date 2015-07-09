@@ -18,12 +18,14 @@ CFLAGS = -g -Os
 CXXFLAGS = -g -Os
 CPPFLAGS =  -I../include -I. -I../uae_cpu
 #DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DREGPARAM="__attribute__((regparm(3)))" -DX86_ASSEMBLY -D_REENTRANT -DDATADIR=\"$(datadir)/$(APP)\"
-DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DX86_ASSEMBLY -D_REENTRANT
+DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DX86_ASSEMBLY -D_REENTRANT -DFPU_IEEE  #-DFPU_X86 -DFPU_UAE 
 LDFLAGS = 
 LIBS = ..\slirp\slirpmingw.a -lSDL -lws2_32  -liphlpapi  # -lSM -lICE  -lX11 -lXext  -lXxf86vm
 SYSSRCS = ../pcap/sdl_pcap.cpp ../dummy/scsi_dummy.cpp audio_sdl.cpp  ../dummy/prefs_editor_dummy.cpp 
-#CPUSRCS = ../uae_cpu/basilisk_glue.cpp ../uae_cpu/memory.cpp ../uae_cpu/newcpu.cpp ../uae_cpu/readcpu.cpp ../uae_cpu/fpu/fpu_uae.cpp cpustbl.cpp cpudefs.cpp cpufast1.s cpufast2.s cpufast3.s cpufast4.s cpufast5.s cpufast6.s cpufast7.s cpufast8.s
-CPUSRCS = ../uae_cpu/basilisk_glue.cpp ../uae_cpu/memory.cpp ../uae_cpu/newcpu.cpp ../uae_cpu/readcpu.cpp ../uae_cpu/fpu/fpu_uae.cpp cpustbl.cpp cpudefs.cpp cpuemu.cpp
+CPUSRCS = ../uae_cpu/basilisk_glue.cpp ../uae_cpu/memory.cpp ../uae_cpu/newcpu.cpp ../uae_cpu/readcpu.cpp cpustbl.cpp cpudefs.cpp cpuemu.cpp
+#FPUSRCS = ../uae_cpu/fpu/fpu_uae.cpp
+#FPUSRCS = ../uae_cpu/fpu/fpu_x86.cpp
+FPUSRCS = ../uae_cpu/fpu/fpu_ieee.cpp
 INSTALL = /usr/bin/install -c
 INSTALL_PROGRAM = ${INSTALL} -s
 INSTALL_DATA = ${INSTALL} -m 644
@@ -35,7 +37,7 @@ SRCS = ../main.cpp main_sdl.cpp ../prefs.cpp ../dummy/prefs_dummy.cpp ../SDL/sys
     ../dummy/clip_dummy.cpp ../adb.cpp ../serial.cpp ../dummy/serial_dummy.cpp ../ether.cpp ../sony.cpp \
     ../disk.cpp ../cdrom.cpp ../scsi.cpp ../video.cpp video_sdl.cpp ../audio.cpp \
     ../extfs.cpp ../user_strings.cpp user_strings_unix.cpp  \
-    $(SYSSRCS) $(CPUSRCS)
+    $(SYSSRCS) $(CPUSRCS) $(FPUSRCS)
 APP = BasiliskII
 
 ## Rules
@@ -110,11 +112,12 @@ $(OBJ_DIR)/gencpu: $(OBJ_DIR)/gencpu.o $(OBJ_DIR)/readcpu.o $(OBJ_DIR)/cpudefs.o
 	$(CC) $(LDFLAGS) -o $(OBJ_DIR)/gencpu $(OBJ_DIR)/gencpu.o $(OBJ_DIR)/readcpu.o $(OBJ_DIR)/cpudefs.o
 cpudefs.cpp: $(OBJ_DIR)/build68k ../uae_cpu/table68k
 	$(OBJ_DIR)/build68k <../uae_cpu/table68k >cpudefs.cpp
-#cpustbl.cpp: cpuemu.cpp
-#cputbl.h: cpuemu.cpp
+cpustbl.cpp: cpuemu.cpp
+cputbl.h: cpuemu.cpp
 
-#cpuemu.cpp: $(OBJ_DIR)/gencpu
-#	$(OBJ_DIR)/gencpu
+#comment these out to not build every time...
+cpuemu.cpp: $(OBJ_DIR)/gencpu
+	$(OBJ_DIR)/gencpu
 
 $(OBJ_DIR)/cpuemu1.o: cpuemu.cpp
 	$(CXX) $(CPPFLAGS) $(DEFS) -DPART_1 $(CXXFLAGS) -c $< -o $@

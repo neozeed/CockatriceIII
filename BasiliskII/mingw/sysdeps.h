@@ -60,6 +60,9 @@
 # endif
 #endif
 
+//this should be pulled in elsewhere for memory.cpp no doubt...
+typedef unsigned int uintptr; 	//JASON
+//typedef unsigned int x86_status_word;
 
 /* Are the Mac and the host address space the same? */
 #define REAL_ADDRESSING 0

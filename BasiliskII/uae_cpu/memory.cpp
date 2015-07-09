@@ -1,10 +1,24 @@
- /*
-  * UAE - The Un*x Amiga Emulator
-  *
-  * Memory management
-  *
-  * (c) 1995 Bernd Schmidt
-  */
+/*
+ * UAE - The Un*x Amiga Emulator
+ *
+ * Memory management
+ *
+ * (c) 1995 Bernd Schmidt
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,12 +26,13 @@
 #include "sysdeps.h"
 
 #include "cpu_emulation.h"
-#include "m68k.h"
-#include "memory.h"
-#include "readcpu.h"
-#include "newcpu.h"
 #include "main.h"
 #include "video.h"
+
+#include "m68k.h"
+#include "memory-uae.h"
+#include "readcpu.h"
+#include "newcpu.h"
 
 #if !REAL_ADDRESSING && !DIRECT_ADDRESSING
 
@@ -36,27 +51,27 @@ addrbank mem_banks[65536];
 #endif
 
 #ifdef NO_INLINE_MEMORY_ACCESS
-__inline__ uae_u32 longget (uaecptr addr)
+uae_u32 longget (uaecptr addr)
 {
     return call_mem_get_func (get_mem_bank (addr).lget, addr);
 }
-__inline__ uae_u32 wordget (uaecptr addr)
+uae_u32 wordget (uaecptr addr)
 {
     return call_mem_get_func (get_mem_bank (addr).wget, addr);
 }
-__inline__ uae_u32 byteget (uaecptr addr)
+uae_u32 byteget (uaecptr addr)
 {
     return call_mem_get_func (get_mem_bank (addr).bget, addr);
 }
-__inline__ void longput (uaecptr addr, uae_u32 l)
+void longput (uaecptr addr, uae_u32 l)
 {
     call_mem_put_func (get_mem_bank (addr).lput, addr, l);
 }
-__inline__ void wordput (uaecptr addr, uae_u32 w)
+void wordput (uaecptr addr, uae_u32 w)
 {
     call_mem_put_func (get_mem_bank (addr).wput, addr, w);
 }
-__inline__ void byteput (uaecptr addr, uae_u32 b)
+void byteput (uaecptr addr, uae_u32 b)
 {
     call_mem_put_func (get_mem_bank (addr).bput, addr, b);
 }
@@ -70,7 +85,6 @@ static uae_u32 REGPARAM2 dummy_bget (uaecptr) REGPARAM;
 static void REGPARAM2 dummy_lput (uaecptr, uae_u32) REGPARAM;
 static void REGPARAM2 dummy_wput (uaecptr, uae_u32) REGPARAM;
 static void REGPARAM2 dummy_bput (uaecptr, uae_u32) REGPARAM;
-static int REGPARAM2 dummy_check (uaecptr addr, uae_u32 size) REGPARAM;
 
 uae_u32 REGPARAM2 dummy_lget (uaecptr addr)
 {
@@ -112,14 +126,6 @@ void REGPARAM2 dummy_bput (uaecptr addr, uae_u32 b)
 	write_log ("Illegal bput at %08lx\n", addr);
 }
 
-int REGPARAM2 dummy_check (uaecptr addr, uae_u32 size)
-{
-    if (illegal_mem)
-	write_log ("Illegal check at %08lx\n", addr);
-
-    return 0;
-}
-
 /* Mac RAM (32 bit addressing) */
 
 static uae_u32 REGPARAM2 ram_lget(uaecptr) REGPARAM;
@@ -128,10 +134,9 @@ static uae_u32 REGPARAM2 ram_bget(uaecptr) REGPARAM;
 static void REGPARAM2 ram_lput(uaecptr, uae_u32) REGPARAM;
 static void REGPARAM2 ram_wput(uaecptr, uae_u32) REGPARAM;
 static void REGPARAM2 ram_bput(uaecptr, uae_u32) REGPARAM;
-static int REGPARAM2 ram_check(uaecptr addr, uae_u32 size) REGPARAM;
 static uae_u8 *REGPARAM2 ram_xlate(uaecptr addr) REGPARAM;
 
-static uae_u32 RAMBaseDiff;	// RAMBaseHost - RAMBaseMac
+static uintptr RAMBaseDiff;	// RAMBaseHost - RAMBaseMac
 
 uae_u32 REGPARAM2 ram_lget(uaecptr addr)
 {
@@ -171,11 +176,6 @@ void REGPARAM2 ram_bput(uaecptr addr, uae_u32 b)
 	*(uae_u8 *)(RAMBaseDiff + addr) = b;
 }
 
-int REGPARAM2 ram_check(uaecptr addr, uae_u32 size)
-{
-    return (addr - RAMBaseMac + size) < RAMSize;
-}
-
 uae_u8 *REGPARAM2 ram_xlate(uaecptr addr)
 {
     return (uae_u8 *)(RAMBaseDiff + addr);
@@ -189,7 +189,6 @@ static uae_u32 REGPARAM2 ram24_bget(uaecptr) REGPARAM;
 static void REGPARAM2 ram24_lput(uaecptr, uae_u32) REGPARAM;
 static void REGPARAM2 ram24_wput(uaecptr, uae_u32) REGPARAM;
 static void REGPARAM2 ram24_bput(uaecptr, uae_u32) REGPARAM;
-static int REGPARAM2 ram24_check(uaecptr addr, uae_u32 size) REGPARAM;
 static uae_u8 *REGPARAM2 ram24_xlate(uaecptr addr) REGPARAM;
 
 uae_u32 REGPARAM2 ram24_lget(uaecptr addr)
@@ -230,11 +229,6 @@ void REGPARAM2 ram24_bput(uaecptr addr, uae_u32 b)
 	*(uae_u8 *)(RAMBaseDiff + (addr & 0xffffff)) = b;
 }
 
-int REGPARAM2 ram24_check(uaecptr addr, uae_u32 size)
-{
-    return ((addr & 0xffffff) - RAMBaseMac + size) < RAMSize;
-}
-
 uae_u8 *REGPARAM2 ram24_xlate(uaecptr addr)
 {
     return (uae_u8 *)(RAMBaseDiff + (addr & 0xffffff));
@@ -248,10 +242,9 @@ static uae_u32 REGPARAM2 rom_bget(uaecptr) REGPARAM;
 static void REGPARAM2 rom_lput(uaecptr, uae_u32) REGPARAM;
 static void REGPARAM2 rom_wput(uaecptr, uae_u32) REGPARAM;
 static void REGPARAM2 rom_bput(uaecptr, uae_u32) REGPARAM;
-static int REGPARAM2 rom_check(uaecptr addr, uae_u32 size) REGPARAM;
 static uae_u8 *REGPARAM2 rom_xlate(uaecptr addr) REGPARAM;
 
-static uae_u32 ROMBaseDiff;	// ROMBaseHost - ROMBaseMac
+static uintptr ROMBaseDiff;	// ROMBaseHost - ROMBaseMac
 
 uae_u32 REGPARAM2 rom_lget(uaecptr addr)
 {
@@ -290,11 +283,6 @@ void REGPARAM2 rom_bput(uaecptr addr, uae_u32 b)
 	write_log ("Illegal ROM bput at %08lx\n", addr);
 }
 
-int REGPARAM2 rom_check(uaecptr addr, uae_u32 size)
-{
-    return (addr - ROMBaseMac + size) < ROMSize;
-}
-
 uae_u8 *REGPARAM2 rom_xlate(uaecptr addr)
 {
     return (uae_u8 *)(ROMBaseDiff + addr);
@@ -305,7 +293,6 @@ uae_u8 *REGPARAM2 rom_xlate(uaecptr addr)
 static uae_u32 REGPARAM2 rom24_lget(uaecptr) REGPARAM;
 static uae_u32 REGPARAM2 rom24_wget(uaecptr) REGPARAM;
 static uae_u32 REGPARAM2 rom24_bget(uaecptr) REGPARAM;
-static int REGPARAM2 rom24_check(uaecptr addr, uae_u32 size) REGPARAM;
 static uae_u8 *REGPARAM2 rom24_xlate(uaecptr addr) REGPARAM;
 
 uae_u32 REGPARAM2 rom24_lget(uaecptr addr)
@@ -325,11 +312,6 @@ uae_u32 REGPARAM2 rom24_wget(uaecptr addr)
 uae_u32 REGPARAM2 rom24_bget(uaecptr addr)
 {
     return (uae_u32)*(uae_u8 *)(ROMBaseDiff + (addr & 0xffffff));
-}
-
-int REGPARAM2 rom24_check(uaecptr addr, uae_u32 size)
-{
-    return ((addr & 0xffffff) - ROMBaseMac + size) < ROMSize;
 }
 
 uae_u8 *REGPARAM2 rom24_xlate(uaecptr addr)
@@ -359,10 +341,9 @@ static void REGPARAM2 frame_host_565_wput(uaecptr, uae_u32) REGPARAM;
 static uae_u32 REGPARAM2 frame_host_888_lget(uaecptr) REGPARAM;
 static void REGPARAM2 frame_host_888_lput(uaecptr, uae_u32) REGPARAM;
 
-static int REGPARAM2 frame_check(uaecptr addr, uae_u32 size) REGPARAM;
 static uae_u8 *REGPARAM2 frame_xlate(uaecptr addr) REGPARAM;
 
-static uae_u32 FrameBaseDiff;	// MacFrameBaseHost - MacFrameBaseMac
+static uintptr FrameBaseDiff;	// MacFrameBaseHost - MacFrameBaseMac
 
 uae_u32 REGPARAM2 frame_direct_lget(uaecptr addr)
 {
@@ -477,22 +458,12 @@ void REGPARAM2 frame_host_888_lput(uaecptr addr, uae_u32 l)
     *m = l;
 }
 
-int REGPARAM2 frame_check(uaecptr addr, uae_u32 size)
-{
-    return (addr - MacFrameBaseMac + size) < MacFrameSize;
-}
-
 uae_u8 *REGPARAM2 frame_xlate(uaecptr addr)
 {
     return (uae_u8 *)(FrameBaseDiff + addr);
 }
 
 /* Default memory access functions */
-
-int REGPARAM2 default_check (uaecptr a, uae_u32 b)
-{
-    return 0;
-}
 
 uae_u8 *REGPARAM2 default_xlate (uaecptr a)
 {
@@ -505,76 +476,68 @@ uae_u8 *REGPARAM2 default_xlate (uaecptr a)
 addrbank dummy_bank = {
     dummy_lget, dummy_wget, dummy_bget,
     dummy_lput, dummy_wput, dummy_bput,
-    default_xlate, dummy_check
+    default_xlate
 };
 
 addrbank ram_bank = {
     ram_lget, ram_wget, ram_bget,
     ram_lput, ram_wput, ram_bput,
-    ram_xlate, ram_check
+    ram_xlate
 };
 
 addrbank ram24_bank = {
     ram24_lget, ram24_wget, ram24_bget,
     ram24_lput, ram24_wput, ram24_bput,
-    ram24_xlate, ram24_check
+    ram24_xlate
 };
 
 addrbank rom_bank = {
     rom_lget, rom_wget, rom_bget,
     rom_lput, rom_wput, rom_bput,
-    rom_xlate, rom_check
+    rom_xlate
 };
 
 addrbank rom24_bank = {
     rom24_lget, rom24_wget, rom24_bget,
     rom_lput, rom_wput, rom_bput,
-    rom24_xlate, rom24_check
+    rom24_xlate
 };
 
 addrbank frame_direct_bank = {
     frame_direct_lget, frame_direct_wget, frame_direct_bget,
     frame_direct_lput, frame_direct_wput, frame_direct_bput,
-    frame_xlate, frame_check
+    frame_xlate
 };
 
 addrbank frame_host_555_bank = {
     frame_host_555_lget, frame_host_555_wget, frame_direct_bget,
     frame_host_555_lput, frame_host_555_wput, frame_direct_bput,
-    frame_xlate, frame_check
+    frame_xlate
 };
 
 addrbank frame_host_565_bank = {
     frame_host_565_lget, frame_host_565_wget, frame_direct_bget,
     frame_host_565_lput, frame_host_565_wput, frame_direct_bput,
-    frame_xlate, frame_check
+    frame_xlate
 };
 
 addrbank frame_host_888_bank = {
     frame_host_888_lget, frame_direct_wget, frame_direct_bget,
     frame_host_888_lput, frame_direct_wput, frame_direct_bput,
-    frame_xlate, frame_check
+    frame_xlate
 };
 
 void memory_init(void)
 {
-	char buffer[4096];
-	char *nam;
-	int i, fd;
-
-	for(i=0; i<65536; i++)
+	for(long i=0; i<65536; i++)
 		put_mem_bank(i<<16, &dummy_bank);
 
 	// Limit RAM size to not overlap ROM
-#if REAL_ADDRESSING
-	uint32 ram_size = RAMSize;
-#else
 	uint32 ram_size = RAMSize > ROMBaseMac ? ROMBaseMac : RAMSize;
-#endif
 
-	RAMBaseDiff = (uae_u32)RAMBaseHost - (uae_u32)RAMBaseMac;
-	ROMBaseDiff = (uae_u32)ROMBaseHost - (uae_u32)ROMBaseMac;
-	FrameBaseDiff = (uae_u32)MacFrameBaseHost - (uae_u32)MacFrameBaseMac;
+	RAMBaseDiff = (uintptr)RAMBaseHost - (uintptr)RAMBaseMac;
+	ROMBaseDiff = (uintptr)ROMBaseHost - (uintptr)ROMBaseMac;
+	FrameBaseDiff = (uintptr)MacFrameBaseHost - (uintptr)MacFrameBaseMac;
 
 	// Map RAM and ROM
 	if (TwentyFourBitAddressing) {

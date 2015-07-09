@@ -35,6 +35,10 @@
 
 /* The number of bytes in a int.  */
 #define SIZEOF_INT 4
+#define SIZEOF_FLOAT 4
+#define SIZEOF_DOUBLE 8
+#define SIZEOF_LONG_DOUBLE 12
+#define SIZEOF_LONG_LONG 8
 
 /* The number of bytes in a long.  */
 #define SIZEOF_LONG 4
@@ -89,3 +93,11 @@
 
 /* Define if you have the readline library (-lreadline).  */
 /* #undef HAVE_LIBREADLINE */
+
+
+#define FPU_USE_NATIVE_FLAGS 1
+//these are now in the makefile
+//#define FPU_IEEE 1
+//#define FPU_UAE
+//#define FPU_X86 1
+//#define USE_X87_ASSEMBLY 1
