@@ -31,7 +31,7 @@ INSTALL_PROGRAM = ${INSTALL} -s
 INSTALL_DATA = ${INSTALL} -m 644
 
 ## Files
-SRCS = ../main.cpp main_sdl.cpp ../prefs.cpp ../dummy/prefs_dummy.cpp ../SDL/sys_unix_sdl.cpp \
+SRCS = ../main.cpp ../sdl/main_sdl.cpp ../prefs.cpp ../dummy/prefs_dummy.cpp ../SDL/sys_unix_sdl.cpp \
     ../rom_patches.cpp ../slot_rom.cpp ../rsrc_patches.cpp ../emul_op.cpp \
     ../macos_util.cpp ../xpram.cpp ../dummy/xpram_dummy.cpp ../timer.cpp ../SDL/timer_common.cpp \
     ../dummy/clip_dummy.cpp ../adb.cpp ../serial.cpp ../dummy/serial_dummy.cpp ../ether.cpp ../sony.cpp \
@@ -64,35 +64,14 @@ VPATH += $(addprefix :, $(subst  ,:, $(filter-out $($(subst, :, ,$(VPATH))), $(S
 $(APP): $(OBJ_DIR) $(OBJS)
 	$(CXX) -o $(APP) $(LDFLAGS) $(OBJS) $(LIBS)
 
-modules:
-	cd Linux/NetDriver; make
-
-install: $(APP) installdirs
-	$(INSTALL_PROGRAM) $(APP) $(bindir)/$(APP)
-	-$(INSTALL_DATA) $(APP).1 $(man1dir)/$(APP).1
-	$(INSTALL_DATA) keycodes $(datadir)/$(APP)/keycodes
-	$(INSTALL_DATA) fbdevices $(datadir)/$(APP)/fbdevices
-
-installdirs:
-	$(SHELL) mkinstalldirs $(bindir) $(man1dir) $(datadir)/$(APP)
-
-uninstall:
-	rm -f $(bindir)/$(APP)
-	rm -f $(man1dir)/$(APP).1
-	rm -f $(datadir)/$(APP)/keycodes
-	rm -f $(datadir)/$(APP)/fbdevices
-	rmdir $(datadir)/$(APP)
 
 mostlyclean:
 	rm -f $(APP) $(OBJ_DIR)/* core* *.core *~ *.bak
 
 clean: mostlyclean
 	rm -f cpuemu.cpp cpudefs.cpp cputmp*.s cpufast*.s cpustbl.cpp cputbl.h
-
-distclean: clean
 	rm -rf $(OBJ_DIR)
-	rm -f Makefile
-	rm -f config.cache config.log config.status config.h
+
 
 depend dep:
 	makedepend $(CPPFLAGS) -Y. $(SRCS) 2>/dev/null

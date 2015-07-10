@@ -61,6 +61,7 @@ static int _llseek(uint fd, ulong hi, ulong lo, loff_t *res, uint wh)
 #include "macos_util.h"
 #include "prefs.h"
 #include "user_strings.h"
+#include "cpu_emulation.h"
 #include "sys.h"
 
 #define DEBUG 0
@@ -1015,6 +1016,18 @@ static void Sys_find_hfs_partition(file_handle *fh)
 void QuitEmulator()
 {
 	fflush(stdout);
+	// Exit 680x0 emulation
+	Exit680x0();
+	ExitAll();
+	// Delete ROM area
+	delete[] ROMBaseHost;
+	// Delete RAM area
+	delete[] RAMBaseHost;
+	// Exit system routines
+	SysExit();
+	// Exit preferences
+	PrefsExit();
+
 	
 	exit(0);
 }

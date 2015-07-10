@@ -614,7 +614,7 @@ void SCSI_Emulate_Command(unsigned char *cdb)	{
 		case CMD_READ_TOC:
 		    D(bug(" SCSI command: Read TOC\n"));
                     SCSI_toc(cdb);
-		    break;		//this should be implimented!
+		    break;
                 /* as of yet unsupported commands */
                 case CMD_VERIFY_TRACK:
                 case CMD_FORMAT_TRACK:
@@ -810,8 +810,9 @@ switch(format){
 	case 0:
 	toclen = cdrom_read_toc(nb_sectors, outbuf, msf, start_track);
 	printf("generated toclen is %d\n",toclen);
-	//memcpy(buffer, inquiry_bytes, scsi_buffer.limit);
-        memcpy(buffer, outbuf, toclen*2);
+        memcpy(buffer, outbuf, toclen);
+	scsi_buffer.disk=false;
+	scsi_buffer.limit=scsi_buffer.size= toclen;
 	SCSIdisk[target].status = STAT_GOOD;
 	SCSIdisk[target].sense.code = SC_NO_ERROR;
         SCSIdisk[target].sense.valid = false;

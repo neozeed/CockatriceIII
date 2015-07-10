@@ -83,8 +83,6 @@ int main(int argc, char *argv[])
 #endif
 {
 
-	//	_chdir("c:\\test\\");
-	// Initialize variables
 	RAMBaseHost = NULL;
 	ROMBaseHost = NULL;
 	srand(time(NULL));
