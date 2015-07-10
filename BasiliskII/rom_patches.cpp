@@ -397,6 +397,7 @@ static const uint8 disk_driver[] = {	// Generic disk driver
 	0x4e, 0x75							//  rts
 };
 
+#if 0
 static const uint8 cdrom_driver[] = {	// CD-ROM driver
 	// Driver header
 	CDROMDriverFlags >> 8, CDROMDriverFlags & 0xff, 0, 0, 0, 0, 0, 0,
@@ -444,6 +445,7 @@ static const uint8 cdrom_driver[] = {	// CD-ROM driver
 	0x70, 0xe8,							//  moveq	#-24,d0
 	0x4e, 0x75							//  rts
 };
+#endif
 
 static const uint8 ain_driver[] = {	// .AIn driver header
 	// Driver header
@@ -718,6 +720,7 @@ void InstallDrivers(uint32 pb)
 	r.a[0] = pb;
 	Execute68kTrap(0xa000, &r);		// Open()
 
+#if 0
 	// Install CD-ROM driver unless nocdrom option given
 	if (!PrefsFindBool("nocdrom")) {
 
@@ -736,6 +739,7 @@ void InstallDrivers(uint32 pb)
 		r.a[0] = pb;
 		Execute68kTrap(0xa000, &r);		// Open()
 	}
+#endif
 }
 
 
@@ -886,7 +890,7 @@ printf("Patching for a Mac Classic/SE (version $0276)\n");
 
 	// Install .Disk and .AppleCD drivers
 	memcpy(ROMBaseHost + sony_offset + 0x100, disk_driver, sizeof(disk_driver));
-	memcpy(ROMBaseHost + sony_offset + 0x200, cdrom_driver, sizeof(cdrom_driver));
+	//memcpy(ROMBaseHost + sony_offset + 0x200, cdrom_driver, sizeof(cdrom_driver));
 
 	// Copy icons to ROM
 	SonyDiskIconAddr = ROMBaseMac + sony_offset + 0x400;
@@ -895,8 +899,8 @@ printf("Patching for a Mac Classic/SE (version $0276)\n");
 	memcpy(ROMBaseHost + sony_offset + 0x600, SonyDriveIcon, sizeof(SonyDriveIcon));
 	DiskIconAddr = ROMBaseMac + sony_offset + 0x800;
 	memcpy(ROMBaseHost + sony_offset + 0x800, DiskIcon, sizeof(DiskIcon));
-	CDROMIconAddr = ROMBaseMac + sony_offset + 0xa00;
-	memcpy(ROMBaseHost + sony_offset + 0xa00, CDROMIcon, sizeof(CDROMIcon));
+	//CDROMIconAddr = ROMBaseMac + sony_offset + 0xa00;
+	//memcpy(ROMBaseHost + sony_offset + 0xa00, CDROMIcon, sizeof(CDROMIcon));
 
 	// Install SERD patch and serial drivers	
 	serd_offset = 0x31bae;
@@ -1496,7 +1500,7 @@ static bool patch_rom_32(void)
 
 	// Install .Disk and .AppleCD drivers
 	memcpy(ROMBaseHost + sony_offset + 0x100, disk_driver, sizeof(disk_driver));
-	memcpy(ROMBaseHost + sony_offset + 0x200, cdrom_driver, sizeof(cdrom_driver));
+	//memcpy(ROMBaseHost + sony_offset + 0x200, cdrom_driver, sizeof(cdrom_driver));
 
 	// Copy icons to ROM
 	SonyDiskIconAddr = ROMBaseMac + sony_offset + 0x400;
@@ -1505,8 +1509,8 @@ static bool patch_rom_32(void)
 	memcpy(ROMBaseHost + sony_offset + 0x600, SonyDriveIcon, sizeof(SonyDriveIcon));
 	DiskIconAddr = ROMBaseMac + sony_offset + 0x800;
 	memcpy(ROMBaseHost + sony_offset + 0x800, DiskIcon, sizeof(DiskIcon));
-	CDROMIconAddr = ROMBaseMac + sony_offset + 0xa00;
-	memcpy(ROMBaseHost + sony_offset + 0xa00, CDROMIcon, sizeof(CDROMIcon));
+	//CDROMIconAddr = ROMBaseMac + sony_offset + 0xa00;
+	//memcpy(ROMBaseHost + sony_offset + 0xa00, CDROMIcon, sizeof(CDROMIcon));
 
 	// Install SERD patch and serial drivers
 	serd_offset = find_rom_resource('SERD', 0);

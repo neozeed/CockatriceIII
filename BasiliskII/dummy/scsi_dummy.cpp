@@ -798,21 +798,23 @@ int cdrom_read_toc(int nb_sectors, uint8_t *buf, int msf, int start_track)
 
 void SCSI_toc(uint8 *cdb){
 int start_track, format, msf, toclen;
-int nb_sectors=20400;	//windows.iso is 41,779,200
+int nb_sectors=SCSIdisk[target].size/CDBLOCKSIZE;
 uint8 outbuf[4096];
+
+memset(outbuf,0x0,sizeof(outbuf));
 msf = cdb[1]&2;
 format =cdb[2] &0xf;
 start_track=cdb[6];
-printf("Read TOC (track %d format %d msf %d)\n", start_track, format, msf >> 1);
+printf("Read TOC nbuf %d (track %d format %d msf %d)\n",nb_sectors, start_track, format, msf >> 1);
 switch(format){
 	case 0:
 	toclen = cdrom_read_toc(nb_sectors, outbuf, msf, start_track);
 	printf("generated toclen is %d\n",toclen);
 	//memcpy(buffer, inquiry_bytes, scsi_buffer.limit);
-        memcpy(buffer, outbuf, toclen);
+        memcpy(buffer, outbuf, toclen*2);
 	SCSIdisk[target].status = STAT_GOOD;
 	SCSIdisk[target].sense.code = SC_NO_ERROR;
-        SCSIdisk[target].sense.valid = true;
+        SCSIdisk[target].sense.valid = false;
 	break;
 	case 1:	//multisession
 	SCSIabort();

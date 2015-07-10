@@ -81,7 +81,7 @@ int FindFreeDriveNumber(int num)
 
 void MountVolume(void *fh)
 {
-	SonyMountVolume(fh) || DiskMountVolume(fh) || CDROMMountVolume(fh);
+	SonyMountVolume(fh) || DiskMountVolume(fh);	// || CDROMMountVolume(fh);
 }
 
 

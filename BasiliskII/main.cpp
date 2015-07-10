@@ -113,7 +113,7 @@ bool InitAll(void)
 	// Init drivers
 	SonyInit();
 	DiskInit();
-	CDROMInit();
+	//CDROMInit();
 	SCSIInit();
 
 #if SUPPORTS_EXTFS
@@ -209,7 +209,7 @@ void ExitAll(void)
 
 	// Exit drivers
 	SCSIExit();
-	CDROMExit();
+	//CDROMExit();
 	DiskExit();
 	SonyExit();
 }

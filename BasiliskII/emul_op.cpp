@@ -286,7 +286,7 @@ void EmulOp(uint16 opcode, M68kRegisters *r)
 		case M68K_EMUL_OP_DISK_STATUS:
 			r->d[0] = DiskStatus(r->a[0], r->a[1]);
 			break;
-
+#if 0
 		case M68K_EMUL_OP_CDROM_OPEN:		// CD-ROM driver functions
 			r->d[0] = CDROMOpen(r->a[0], r->a[1]);
 			break;
@@ -302,6 +302,7 @@ void EmulOp(uint16 opcode, M68kRegisters *r)
 		case M68K_EMUL_OP_CDROM_STATUS:
 			r->d[0] = CDROMStatus(r->a[0], r->a[1]);
 			break;
+#endif
 
 		case M68K_EMUL_OP_VIDEO_OPEN:		// Video driver functions
 			r->d[0] = VideoDriverOpen(r->a[0], r->a[1]);
@@ -426,7 +427,7 @@ void EmulOp(uint16 opcode, M68kRegisters *r)
 					VideoInterrupt();
 					SonyInterrupt();
 					DiskInterrupt();
-					CDROMInterrupt();
+					//CDROMInterrupt();
 					EtherInterrupt();
 
 					// Call DoVBLTask(0)

@@ -14,8 +14,8 @@ man1dir = $(mandir)/man1
 
 CC = gcc
 CXX = c++
-CFLAGS = -g -O3 -fno-strict-aliasing -fomit-frame-pointer  -march=native 
-CXXFLAGS = -g -O3 -fno-strict-aliasing -fomit-frame-pointer  -march=native 
+CFLAGS = -g -O2 -fno-strict-aliasing -fomit-frame-pointer  -march=native 
+CXXFLAGS = -g -O2 -fno-strict-aliasing -fomit-frame-pointer  -march=native 
 CPPFLAGS =  -I../include -I. -I../uae_cpu
 #DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DREGPARAM="__attribute__((regparm(3)))" -DX86_ASSEMBLY -D_REENTRANT -DDATADIR=\"$(datadir)/$(APP)\"
 DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DX86_ASSEMBLY -D_REENTRANT -DFPU_IEEE  #-DFPU_X86 -DFPU_UAE 
@@ -35,7 +35,7 @@ SRCS = ../main.cpp main_sdl.cpp ../prefs.cpp ../dummy/prefs_dummy.cpp ../SDL/sys
     ../rom_patches.cpp ../slot_rom.cpp ../rsrc_patches.cpp ../emul_op.cpp \
     ../macos_util.cpp ../xpram.cpp ../dummy/xpram_dummy.cpp ../timer.cpp ../SDL/timer_common.cpp \
     ../dummy/clip_dummy.cpp ../adb.cpp ../serial.cpp ../dummy/serial_dummy.cpp ../ether.cpp ../sony.cpp \
-    ../disk.cpp ../cdrom.cpp ../scsi.cpp ../video.cpp video_sdl.cpp ../audio.cpp \
+    ../disk.cpp ../scsi.cpp ../video.cpp video_sdl.cpp ../audio.cpp \
     ../extfs.cpp ../user_strings.cpp user_strings_unix.cpp  \
     $(SYSSRCS) $(CPUSRCS) $(FPUSRCS)
 APP = BasiliskII.exe
