@@ -319,7 +319,7 @@ void SCSI_GuessGeometry(uint32 size, uint32 *cylinders, uint32 *heads, uint32 *s
 void SCSI_WriteSector(uint8 *cdb);
 void scsi_write_sector(void);
 void SCSI_RequestSense(uint8 *cdb);
-
+void SCSI_toc(uint8 *cdb);
 
 
 /////AMIGA
@@ -613,6 +613,7 @@ void SCSI_Emulate_Command(unsigned char *cdb)	{
                     break;
 		case CMD_READ_TOC:
 		    D(bug(" SCSI command: Read TOC\n"));
+                    SCSI_toc(cdb);
 		    break;		//this should be implimented!
                 /* as of yet unsupported commands */
                 case CMD_VERIFY_TRACK:
@@ -723,6 +724,108 @@ void SCSI_StartStop(uint8 *cdb) {
 //if(!cdb[4]&1)
 	{printf("\n\nEJECT\n");}
 //    SCSIbus.phase = PHASE_ST;
+}
+
+//From QEMU this is total crap apparently.
+static void lba_to_msf(uint8_t *buf, int lba)
+{
+    lba += 150;
+    buf[0] = (lba / 75) / 60;
+    buf[1] = (lba / 75) % 60;
+    buf[2] = lba % 75;
+}
+
+static inline void stl_be_p(void *ptr, int v)
+{
+#if defined(__i386__) || defined(__x86_64__)
+    asm volatile ("bswap %0\n"
+                  "movl %0, %1\n"
+                  : "=r" (v)
+                  : "m" (*(uint32_t *)ptr), "0" (v));
+#else
+    uint8_t *d = (uint8_t *) ptr;
+    d[0] = v >> 24;
+    d[1] = v >> 16;
+    d[2] = v >> 8;
+    d[3] = v;
+#endif
+}
+
+/* same toc as bochs. Return -1 if error or the toc length */
+/* XXX: check this */
+int cdrom_read_toc(int nb_sectors, uint8_t *buf, int msf, int start_track)
+{
+    uint8_t *q;
+    int len;
+    
+    if (start_track > 1 && start_track != 0xaa)
+        return -1;
+    q = buf + 2;
+    *q++ = 1; /* first session */
+    *q++ = 1; /* last session */
+    if (start_track <= 1) {
+        *q++ = 0; /* reserved */
+        *q++ = 0x14; /* ADR, control */
+        *q++ = 1;    /* track number */
+        *q++ = 0; /* reserved */
+        if (msf) {
+            *q++ = 0; /* reserved */
+            lba_to_msf(q, 0);
+            q += 3;
+        } else {
+            /* sector 0 */
+            stl_be_p(q, 0);
+            q += 4;
+        }
+    }
+    /* lead out track */
+    *q++ = 0; /* reserved */
+    *q++ = 0x16; /* ADR, control */
+    *q++ = 0xaa; /* track number */
+    *q++ = 0; /* reserved */
+    if (msf) {
+        *q++ = 0; /* reserved */
+        lba_to_msf(q, nb_sectors);
+        q += 3;
+    } else {
+        stl_be_p(q, nb_sectors);
+        q += 4;
+    }
+    len = q - buf;
+    stl_be_p(buf, len - 2);
+    return len;
+}
+
+void SCSI_toc(uint8 *cdb){
+int start_track, format, msf, toclen;
+int nb_sectors=20400;	//windows.iso is 41,779,200
+uint8 outbuf[4096];
+msf = cdb[1]&2;
+format =cdb[2] &0xf;
+start_track=cdb[6];
+printf("Read TOC (track %d format %d msf %d)\n", start_track, format, msf >> 1);
+switch(format){
+	case 0:
+	toclen = cdrom_read_toc(nb_sectors, outbuf, msf, start_track);
+	printf("generated toclen is %d\n",toclen);
+	//memcpy(buffer, inquiry_bytes, scsi_buffer.limit);
+        memcpy(buffer, outbuf, toclen);
+	SCSIdisk[target].status = STAT_GOOD;
+	SCSIdisk[target].sense.code = SC_NO_ERROR;
+        SCSIdisk[target].sense.valid = true;
+	break;
+	case 1:	//multisession
+	SCSIabort();
+	break;
+	case 2: 
+	//toclen = cdrom_read_toc_raw(nb_sectors, outbuf, msf, start_track);
+	SCSIabort();
+        break;
+	default:
+	SCSIabort();
+	break;
+	}//end switch format
+
 }
 
 

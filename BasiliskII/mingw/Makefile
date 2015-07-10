@@ -14,8 +14,8 @@ man1dir = $(mandir)/man1
 
 CC = gcc
 CXX = c++
-CFLAGS = -g -Os
-CXXFLAGS = -g -Os
+CFLAGS = -g -O3 -fno-strict-aliasing -fomit-frame-pointer  -march=native 
+CXXFLAGS = -g -O3 -fno-strict-aliasing -fomit-frame-pointer  -march=native 
 CPPFLAGS =  -I../include -I. -I../uae_cpu
 #DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DREGPARAM="__attribute__((regparm(3)))" -DX86_ASSEMBLY -D_REENTRANT -DDATADIR=\"$(datadir)/$(APP)\"
 DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DX86_ASSEMBLY -D_REENTRANT -DFPU_IEEE  #-DFPU_X86 -DFPU_UAE 
@@ -38,7 +38,7 @@ SRCS = ../main.cpp main_sdl.cpp ../prefs.cpp ../dummy/prefs_dummy.cpp ../SDL/sys
     ../disk.cpp ../cdrom.cpp ../scsi.cpp ../video.cpp video_sdl.cpp ../audio.cpp \
     ../extfs.cpp ../user_strings.cpp user_strings_unix.cpp  \
     $(SYSSRCS) $(CPUSRCS) $(FPUSRCS)
-APP = BasiliskII
+APP = BasiliskII.exe
 
 ## Rules
 .PHONY: modules install uninstall clean distclean depend dep
@@ -106,18 +106,18 @@ $(OBJ_DIR)/%.o : %.s
 
 $(OBJ_DIR)/cpuopti: $(OBJ_DIR)/cpuopti.o
 	$(CC) $(LDFLAGS) -o $(OBJ_DIR)/cpuopti $(OBJ_DIR)/cpuopti.o
-$(OBJ_DIR)/build68k: $(OBJ_DIR)/build68k.o
-	$(CC) $(LDFLAGS) -o $(OBJ_DIR)/build68k $(OBJ_DIR)/build68k.o
-$(OBJ_DIR)/gencpu: $(OBJ_DIR)/gencpu.o $(OBJ_DIR)/readcpu.o $(OBJ_DIR)/cpudefs.o
-	$(CC) $(LDFLAGS) -o $(OBJ_DIR)/gencpu $(OBJ_DIR)/gencpu.o $(OBJ_DIR)/readcpu.o $(OBJ_DIR)/cpudefs.o
-cpudefs.cpp: $(OBJ_DIR)/build68k ../uae_cpu/table68k
-	$(OBJ_DIR)/build68k <../uae_cpu/table68k >cpudefs.cpp
+$(OBJ_DIR)/build68k.exe: $(OBJ_DIR)/build68k.o
+	$(CC) $(LDFLAGS) -o $(OBJ_DIR)/build68k.exe $(OBJ_DIR)/build68k.o
+$(OBJ_DIR)/gencpu.exe: $(OBJ_DIR)/gencpu.o $(OBJ_DIR)/readcpu.o $(OBJ_DIR)/cpudefs.o
+	$(CC) $(LDFLAGS) -o $(OBJ_DIR)/gencpu.exe $(OBJ_DIR)/gencpu.o $(OBJ_DIR)/readcpu.o $(OBJ_DIR)/cpudefs.o
+cpudefs.cpp: $(OBJ_DIR)/build68k.exe ../uae_cpu/table68k
+	$(OBJ_DIR)/build68k.exe <../uae_cpu/table68k >cpudefs.cpp
 cpustbl.cpp: cpuemu.cpp
 cputbl.h: cpuemu.cpp
 
 #comment these out to not build every time...
-cpuemu.cpp: $(OBJ_DIR)/gencpu
-	$(OBJ_DIR)/gencpu
+cpuemu.cpp: $(OBJ_DIR)/gencpu.exe
+	$(OBJ_DIR)/gencpu.exe
 
 $(OBJ_DIR)/cpuemu1.o: cpuemu.cpp
 	$(CXX) $(CPPFLAGS) $(DEFS) -DPART_1 $(CXXFLAGS) -c $< -o $@
