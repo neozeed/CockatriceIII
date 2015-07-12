@@ -45,6 +45,11 @@
 /* The number of bytes in a short.  */
 #define SIZEOF_SHORT 2
 
+//
+#define SIZEOF_FLOAT 4
+#define SIZEOF_DOUBLE 8
+#define SIZEOF_LONG_DOUBLE 12
+
 /* Define if you have the cfmakeraw function.  */
 #define HAVE_CFMAKERAW 1
 

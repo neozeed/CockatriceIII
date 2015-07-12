@@ -16,16 +16,14 @@ man1dir = $(mandir)/man1
 #CXX = clang -arch i386
 CC = gcc -arch i386
 CXX = g++ -arch i386
-CFLAGS =  -Os 
-CXXFLAGS =  -Os
+CFLAGS =  -O2 
+CXXFLAGS =  -O2
 CPPFLAGS =  -I../include -I. -I../uae_cpu -I../Unix
 #DEFS = -DHAVE_CONFIG_H  -DENABLE_MON=0 -DENABLE_XF86_DGA=0 -DENABLE_FBDEV_DGA=1 -DENABLE_XF86_VIDMODE=0 -DENABLE_GTK=0 -DENABLE_ESD=0 -DREGPARAM="__attribute__((regparm(3)))" -DX86_ASSEMBLY -D_REENTRANT -DDATADIR=\"$(datadir)/$(APP)\"
-DEFS = -DHAVE_CONFIG_H  -DX86_ASSEMBLY -D_REENTRANT -DREGPARAM="__attribute__((regparm(3)))"
+DEFS = -DHAVE_CONFIG_H  -DX86_ASSEMBLY -D_REENTRANT -DREGPARAM="__attribute__((regparm(3)))" -DFPU_IEEE
 LDFLAGS = 
-LIBS =sdlmain.o ../slirp/slirp106i386.a -lpthread -framework SDL -framework cocoa #-lX11 -lXext 
-#SYSSRCS = Linux/ether_linux.cpp Linux/scsi_linux.cpp audio_oss_esd.cpp  ../dummy/prefs_editor_dummy.cpp 
-SYSSRCS = ../SDL/sdl_pcap.cpp ../sdl/audio_sdl.cpp ../dummy/scsi_dummy.cpp  ../dummy/prefs_editor_dummy.cpp 
-#CPUSRCS = ../uae_cpu/basilisk_glue.cpp ../uae_cpu/memory.cpp ../uae_cpu/newcpu.cpp ../uae_cpu/readcpu.cpp ../uae_cpu/fpu/fpu_uae.cpp cpustbl.cpp cpudefs.cpp cpufast1.s cpufast2.s cpufast3.s cpufast4.s cpufast5.s cpufast6.s cpufast7.s cpufast8.s
+LIBS = ../slirp/slirp106i386.a -lpthread -framework SDL -framework cocoa 
+SYSSRCS = sdlmain.m ../SDL/sdl_pcap.cpp ../sdl/audio_sdl.cpp ../dummy/scsi_dummy.cpp  ../dummy/prefs_editor_dummy.cpp 
 CPUSRCS = ../uae_cpu/basilisk_glue.cpp ../uae_cpu/memory.cpp ../uae_cpu/newcpu.cpp ../uae_cpu/readcpu.cpp ../uae_cpu/fpu/fpu_uae.cpp cpustbl.cpp cpudefs.cpp cpuemu.cpp
 INSTALL = /usr/bin/install -c
 INSTALL_PROGRAM = ${INSTALL} -s
@@ -65,46 +63,23 @@ VPATH += $(addprefix :, $(subst  ,:, $(filter-out $($(subst, :, ,$(VPATH))), $(S
 $(APP): $(OBJ_DIR) $(OBJS)
 	$(CXX) -o $(APP) $(LDFLAGS) $(OBJS) $(LIBS)
 
-modules:
-	cd Linux/NetDriver; make
-
-install: $(APP) installdirs
-	$(INSTALL_PROGRAM) $(APP) $(bindir)/$(APP)
-	-$(INSTALL_DATA) $(APP).1 $(man1dir)/$(APP).1
-	$(INSTALL_DATA) keycodes $(datadir)/$(APP)/keycodes
-	$(INSTALL_DATA) fbdevices $(datadir)/$(APP)/fbdevices
-
-installdirs:
-	$(SHELL) mkinstalldirs $(bindir) $(man1dir) $(datadir)/$(APP)
-
-uninstall:
-	rm -f $(bindir)/$(APP)
-	rm -f $(man1dir)/$(APP).1
-	rm -f $(datadir)/$(APP)/keycodes
-	rm -f $(datadir)/$(APP)/fbdevices
-	rmdir $(datadir)/$(APP)
-
 mostlyclean:
 	rm -f $(APP) $(OBJ_DIR)/* core* *.core *~ *.bak
 
 clean: mostlyclean
 	rm -f cpuemu.cpp cpudefs.cpp cputmp*.s cpufast*.s cpustbl.cpp cputbl.h
 
-distclean: clean
-	rm -rf $(OBJ_DIR)
-	rm -f Makefile
-	rm -f config.cache config.log config.status config.h
-
 depend dep:
 	makedepend $(CPPFLAGS) -Y. $(SRCS) 2>/dev/null
 
 $(OBJ_DIR)/%.o : %.c
 	$(CC) $(CPPFLAGS) $(DEFS) $(CFLAGS) -c $< -o $@
+$(OBJ_DIR)/%.o : %.m
+	$(CC) $(CPPFLAGS) $(DEFS) $(CFLAGS) -c $< -o $@
 $(OBJ_DIR)/%.o : %.cpp
 	$(CXX) $(CPPFLAGS) $(DEFS) $(CXXFLAGS) -c $< -o $@
 $(OBJ_DIR)/%.o : %.s
 	$(CC)  -c $< -o $@
-#	$(CC) $(CPPFLAGS) $(DEFS) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/cpuopti: $(OBJ_DIR)/cpuopti.o
 	$(CC) $(LDFLAGS) -o $(OBJ_DIR)/cpuopti $(OBJ_DIR)/cpuopti.o

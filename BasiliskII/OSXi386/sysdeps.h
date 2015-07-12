@@ -60,6 +60,8 @@
 #endif
 
 
+typedef unsigned int uintptr; 	//JASON
+
 /* Are the Mac and the host address space the same? */
 #define REAL_ADDRESSING 0
 
