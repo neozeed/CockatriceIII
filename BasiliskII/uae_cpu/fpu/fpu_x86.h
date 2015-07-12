@@ -42,8 +42,9 @@
 #define	FPU		fpu.
 
 // Status word
-PRIVATE uae_u32 x86_status_word;
-PRIVATE uae_u32 x86_status_word_accrued;
+//got moved to sysdeps for no good reason
+//PRIVATE uae_u32 x86_status_word;
+//PRIVATE uae_u32 x86_status_word_accrued;
 
 // FPU jump table
 typedef void REGPARAM2 ( *fpuop_func )( uae_u32, uae_u32 );

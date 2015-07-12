@@ -24,7 +24,7 @@ DEFS = -DHAVE_CONFIG_H  -DX86_ASSEMBLY -D_REENTRANT -DREGPARAM="__attribute__((r
 LDFLAGS = 
 LIBS = ../slirp/slirp106i386.a -lpthread -framework SDL -framework cocoa 
 SYSSRCS = sdlmain.m ../SDL/sdl_pcap.cpp ../sdl/audio_sdl.cpp ../dummy/scsi_dummy.cpp  ../dummy/prefs_editor_dummy.cpp 
-CPUSRCS = ../uae_cpu/basilisk_glue.cpp ../uae_cpu/memory.cpp ../uae_cpu/newcpu.cpp ../uae_cpu/readcpu.cpp ../uae_cpu/fpu/fpu_uae.cpp cpustbl.cpp cpudefs.cpp cpuemu.cpp
+CPUSRCS = ../uae_cpu/basilisk_glue.cpp ../uae_cpu/memory.cpp ../uae_cpu/newcpu.cpp ../uae_cpu/readcpu.cpp ../uae_cpu/fpu/fpu_ieee.cpp cpustbl.cpp cpudefs.cpp cpuemu.cpp
 INSTALL = /usr/bin/install -c
 INSTALL_PROGRAM = ${INSTALL} -s
 INSTALL_DATA = ${INSTALL} -m 644
@@ -75,7 +75,7 @@ depend dep:
 $(OBJ_DIR)/%.o : %.c
 	$(CC) $(CPPFLAGS) $(DEFS) $(CFLAGS) -c $< -o $@
 $(OBJ_DIR)/%.o : %.m
-	$(CC) $(CPPFLAGS) $(DEFS) $(CFLAGS) -c $< -o $@
+	cc -arch i386 $(CPPFLAGS) $(DEFS) $(CFLAGS) -c $< -o $@
 $(OBJ_DIR)/%.o : %.cpp
 	$(CXX) $(CPPFLAGS) $(DEFS) $(CXXFLAGS) -c $< -o $@
 $(OBJ_DIR)/%.o : %.s

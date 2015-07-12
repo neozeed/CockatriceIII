@@ -130,6 +130,12 @@ typedef struct timeval tm_time_t;
 #define uae_u64 uint64
 typedef uae_u32 uaecptr;
 
+#ifdef FPU_X86
+// Status word
+static uae_u32 x86_status_word;
+static uae_u32 x86_status_word_accrued;
+#endif
+
 /* Alignment restrictions */
 #if defined(__i386__) || defined(__powerpc__) || defined(__m68k__)
 # define CPU_CAN_ACCESS_UNALIGNED

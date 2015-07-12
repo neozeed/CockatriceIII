@@ -111,8 +111,12 @@ PRIVATE inline void FFPU set_fpccr(uae_u32 new_fpcond)
 	{ FPU fpsr.condition_codes = to_host_fpcond[new_fpcond >> 24]; }
 
 /* Make FPSR according to the value passed in argument */
+//PRIVATE inline void FFPU make_fpsr(fpu_register const & r)
+//	{ uae_u16 sw; __asm__ __volatile__ ("fxam\n\tfnstsw %0" : "=r" (sw) : "f" (r)); FPU fpsr.condition_codes = sw; }
+
 PRIVATE inline void FFPU make_fpsr(fpu_register const & r)
-	{ uae_u16 sw; __asm__ __volatile__ ("fxam\n\tfnstsw %0" : "=r" (sw) : "f" (r)); FPU fpsr.condition_codes = sw; }
+	{ uae_u16 sw; __asm__ ("fxam fnstsw %0" : "=r" (sw) : "f" (r)); 
+	}
 
 /* Return the corresponding ID of the current floating-point condition codes */
 /* NOTE: only valid for evaluation of a condition */

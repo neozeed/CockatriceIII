@@ -6115,7 +6115,8 @@ PUBLIC void FFPU fpu_init( bool integral_68040 )
 
 PUBLIC void FFPU fpu_exit( void )
 {
-	__asm__ __volatile__("frstor %0" : : "m" (m_fpu_state_original));
+//JASON
+//	__asm__ __volatile__("frstor %0" : : "m" (m_fpu_state_original));
 }
 
 PUBLIC void FFPU fpu_reset( void )
