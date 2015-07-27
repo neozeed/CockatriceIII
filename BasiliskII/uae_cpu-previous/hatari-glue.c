@@ -64,7 +64,7 @@ int intlev(void)
 int Init680x0(void)
 {
 	currprefs.cpu_level = changed_prefs.cpu_level = ConfigureParams.System.nCpuLevel;
-
+printf("Init680x0 currprefs.cpu_level %d\n",currprefs.cpu_level);
 	switch (currprefs.cpu_level) {
 		case 0 : currprefs.cpu_model = 68000; break;
 		case 1 : currprefs.cpu_model = 68010; break;
@@ -76,6 +76,7 @@ int Init680x0(void)
 	}
     
     currprefs.fpu_model = changed_prefs.fpu_model = ConfigureParams.System.n_FPUType;
+printf("Init680x0 currprefs.fpu_model %d\n",currprefs.fpu_model);
     switch (currprefs.fpu_model) {
         case 68881: currprefs.fpu_revision = 0x1f; break;
         case 68882: currprefs.fpu_revision = 0x20; break;

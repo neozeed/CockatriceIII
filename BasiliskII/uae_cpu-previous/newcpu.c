@@ -25,18 +25,17 @@
 #include "cpu_prefetch.h"
 #include "main.h"
 #include "m68000.h"
-/**
+//#include "dsp.h"
 #include "reset.h"
 #include "cycInt.h"
 #include "mfp.h"
-#include "dialog.h"
-#include "screen.h"
-#include "video.h"
-#include "options.h"
+//#include "dialog.h"
+//#include "screen.h"
+//#include "video.h"
+//#include "options.h"
 #include "log.h"
-#include "debugui.h"
-#include "debugcpu.h"
-**/
+//#include "debugui.h"
+//#include "debugcpu.h"
 
 
 #ifdef JIT
@@ -574,6 +573,8 @@ void init_m68k (void)
 		}
 	}
 #endif
+//currprefs.cpu_model=68040;	//JASON hack
+//currprefs.cpu_compatible=1;
 	write_log ("Building CPU table for configuration: %d", currprefs.cpu_model);
 	regs.address_space_mask = 0xffffffff;
 //	if (currprefs.cpu_compatible) {
@@ -2496,6 +2497,9 @@ insretry:
 			}
 
 			mmu030_opcode = -1;
+            
+			//no DSP
+			//DSP_Run(cpu_cycles * 2 / CYCLE_UNIT);
 
 			M68000_AddCycles(cpu_cycles * 2 / CYCLE_UNIT);
 
@@ -2583,6 +2587,8 @@ static void m68k_run_mmu040 (void)
 			mmu_opcode = opcode = x_prefetch (0);
 			count_instr (opcode);
 			cpu_cycles = (*cpufunctbl[opcode])(opcode);
+
+			//DSP_Run(cpu_cycles * 4 / CYCLE_UNIT);
 
 			M68000_AddCycles(cpu_cycles * 2 / CYCLE_UNIT);
 
@@ -3551,7 +3557,7 @@ void exception2 (uaecptr addr, bool read, int size, uae_u32 fc)
 			uae_u32 flags = size == 1 ? MMU030_SSW_SIZE_B : (size == 2 ? MMU030_SSW_SIZE_W : MMU030_SSW_SIZE_L);
 			mmu030_page_fault (addr, read, flags, fc);
 		} else {
-			mmu_bus_error (addr, fc, read == false, size, false, 0);
+			mmu_bus_error (addr, fc, read == false, size, false, 0, true);
 		}
 	} else {
 		// simple version
@@ -3586,13 +3592,13 @@ void cpureset (void)
 	}
 	pc = m68k_getpc ();
 	if (pc >= currprefs.chipmem_size) {
-		addrbank *b = &get_mem_bank (pc);
-		if (b->check (pc, 2 + 2)) {
+//		addrbank *b = &get_mem_bank (pc);
+//		if (b->check (pc, 2 + 2)) {
 			/* We have memory, hope for the best.. */
 //			customreset (0);
-			customreset ();
-			return;
-		}
+//			customreset ();
+//			return;
+//		}
 		write_log ("M68K RESET PC=%x, rebooting..\n", pc);
 //		customreset (0);
 		customreset ();

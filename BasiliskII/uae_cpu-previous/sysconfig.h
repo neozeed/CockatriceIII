@@ -80,15 +80,8 @@
 /* #define SINGLEFILE */
 
 #define CUSTOM_SIMPLE /* simplified custom chipset emulation */
-//#define CPUEMU_0 /* generic 680x0 emulation */
-//#define CPUEMU_68000_ONLY /* drop 68010+ commands from CPUEMU_0 */
-#define CPUEMU_0 /* generic 680x0 emulation */
-#define CPUEMU_11 /* 68000+prefetch emulation */
-#define CPUEMU_12 /* 68000 cycle-exact cpu&blitter */
-#define CPUEMU_20 /* 68020 "cycle-exact" + blitter */
-#define CPUEMU_21 /* 68030 (040/060) "cycle-exact" + blitter */
-#define CPUEMU_31 /* 68040 Aranym MMU */
-#define CPUEMU_32 /* 68030 with MMU */
+#define CPUEMU_0
+#define CPUEMU_68000_ONLY /* drop 68010+ commands from CPUEMU_0 */
 #define ADDRESS_SPACE_24BIT
 #ifndef UAE_NOGUI
 #define D3D
