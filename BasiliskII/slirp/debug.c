@@ -9,7 +9,7 @@
 #include "slirp.h"
 
 FILE *dfd = NULL;
-#ifdef DEBUG
+#ifdef SLIRP_DEBUG
 int dostats = 1;
 #else
 int dostats = 0;
@@ -50,7 +50,7 @@ debug_init(file, dbg)
 /*
  * Dump a packet in the same format as tcpdump -x
  */
-#ifdef DEBUG
+#ifdef SLIRP_DEBUG
 void
 dump_packet(dat, n)
 	void *dat;
@@ -333,12 +333,11 @@ void sockstats(void)
 	}
 }
 
-
+//Simple code to purge and close open sockets.
+//This way we can open/close/open/close..
 void purgesocks(void)
 {
-	int n;
 	struct SLIRPsocket *so;
-
 	
 	for (so = tcb.so_next; so != &tcb; so = so->so_next) {
 		
@@ -351,7 +350,7 @@ void
 slirp_exit(exit_status)
 	int exit_status;
 {
-	struct ttys *ttyp;
+//	struct ttys *ttyp;
 	
 	DEBUG_CALL("slirp_exit");
 	DEBUG_ARG("exit_status = %d", exit_status);

@@ -5,9 +5,6 @@
 
 #define CONFIG_QEMU
 
-//#define DEBUG 1
-#undef DEBUG
-
 #ifndef CONFIG_QEMU
 #include "version.h"
 #endif
