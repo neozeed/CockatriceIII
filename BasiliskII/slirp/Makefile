@@ -13,14 +13,14 @@ OBJ =	bootp.o        cksum.o        debug.o        if.o           ip_icmp.o		\
 	tcp_subr.o     tcp_timer.o    tftp.o         udp.o
 
 %.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) $(CFLAGS) -c $< -o $@ 
 
-default: slirpmingw.a
+default: libslirp.a
 
 clean:
 	rm -f $(OBJ)
 	rm -f libslirp.a
 
-slirpmingw.a: $(OBJ)
+libslirp.a: $(OBJ)
 	ar rcs $@ $^
 	ranlib $@

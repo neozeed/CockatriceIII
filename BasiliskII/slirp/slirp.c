@@ -132,7 +132,8 @@ int slirp_init(void)
 #ifdef SLIRP_DEBUG
     //  debug_init("/tmp/slirp.log", DEBUG_DEFAULT);
     //  debug_init("slirplog.txt",DEBUG_DEFAULT);
-	debug_init("slirplog.txt",DBG_CALL);
+	//debug_init("slirplog.txt",DBG_CALL);
+debug_init("slirplog.txt",DEBUG_DEFAULT);
 #endif
     
 #ifdef _WIN32
@@ -434,7 +435,8 @@ void slirp_select_poll(fd_set *readfds, fd_set *writefds, fd_set *xfds)
 			    //ret = send(so->s, &ret, 0, 0);
 			    //winsock2.h:549:32: note: expected 'const char *' but argument is of type 'int *'
 			    //WINSOCK_API_LINKAGE int PASCAL send(SOCKET,const char*,int,int);		JASON
-			    ret = send(so->s, "a", 1, 0);
+			    //ret = send(so->s, "a", 1, 0);		WHY THE HELL WAS THIS HERE?!
+			    ret = send(so->s, &ret, 0, 0);		//This is what it should be.
 			    if (ret < 0) {
 			      /* XXXXX Must fix, zero bytes is a NOP */
 			      if (errno == EAGAIN || errno == EWOULDBLOCK ||

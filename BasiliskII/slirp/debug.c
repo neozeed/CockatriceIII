@@ -333,6 +333,50 @@ void sockstats(void)
 	}
 }
 
+
+
+void printf_sockstats(void)
+{
+	char buff[256];
+	int n;
+	struct SLIRPsocket *so;
+
+        printf(" \r\n");
+	
+	printf(
+	   "Proto[state]     Sock     Local Address, Port  Remote Address, Port RecvQ SendQ\r\n");
+			
+	for (so = tcb.so_next; so != &tcb; so = so->so_next) {
+		
+		n = sprintf(buff, "tcp[%s]", so->so_tcpcb?tcpstates[so->so_tcpcb->t_state]:"NONE");
+		while (n < 17)
+		   buff[n++] = ' ';
+		buff[17] = 0;
+		printf("%s %3d   %15s %5d ",
+				buff, so->s,
+				inet_ntoa(so->so_laddr), ntohs(so->so_lport));
+		printf("%15s %5d %5d %5d\r\n",
+				inet_ntoa(so->so_faddr), ntohs(so->so_fport),
+				so->so_rcv.sb_cc, so->so_snd.sb_cc);
+
+	}
+
+	for (so = udb.so_next; so != &udb; so = so->so_next) {
+		
+		n = sprintf(buff, "udp[%d sec]", (so->so_expire - curtime) / 1000);
+		while (n < 17)
+		   buff[n++] = ' ';
+		buff[17] = 0;
+		printf("%s %3d  %15s %5d  ",
+				buff, so->s,
+				inet_ntoa(so->so_laddr), ntohs(so->so_lport));
+		printf("%15s %5d %5d %5d\r\n",
+				inet_ntoa(so->so_faddr), ntohs(so->so_fport),
+				so->so_rcv.sb_cc, so->so_snd.sb_cc);
+	}
+printf("\n\n");
+}
+
 //Simple code to purge and close open sockets.
 //This way we can open/close/open/close..
 void purgesocks(void)
