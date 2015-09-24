@@ -14,13 +14,13 @@ man1dir = $(mandir)/man1
 
 CC = gcc
 CXX = c++
-CFLAGS = -g -O2 -fno-strict-aliasing -fomit-frame-pointer  -march=native 
-CXXFLAGS = -g -O2 -fno-strict-aliasing -fomit-frame-pointer  -march=native 
+CFLAGS = -g -O2 -fno-strict-aliasing -fomit-frame-pointer -fopenmp 
+CXXFLAGS = -g -O2 -fno-strict-aliasing -fomit-frame-pointer -fopenmp 
 CPPFLAGS =  -I../include -I. -I../uae_cpu
 #DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DREGPARAM="__attribute__((regparm(3)))" -DX86_ASSEMBLY -D_REENTRANT -DDATADIR=\"$(datadir)/$(APP)\"
 DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DX86_ASSEMBLY -D_REENTRANT -DFPU_IEEE  #-DFPU_X86 -DFPU_UAE 
 LDFLAGS = 
-LIBS = ..\slirp\slirpmingw.a -lSDL -lws2_32  -liphlpapi  # -lSM -lICE  -lX11 -lXext  -lXxf86vm
+LIBS = ..\slirp\libslirp.a -lSDL -lws2_32  -liphlpapi  # -lSM -lICE  -lX11 -lXext  -lXxf86vm
 SYSSRCS = ../pcap/sdl_pcap.cpp ../dummy/scsi_dummy.cpp audio_sdl.cpp  ../dummy/prefs_editor_dummy.cpp 
 CPUSRCS = ../uae_cpu/basilisk_glue.cpp ../uae_cpu/memory.cpp ../uae_cpu/newcpu.cpp ../uae_cpu/readcpu.cpp cpustbl.cpp cpudefs.cpp cpuemu.cpp
 #FPUSRCS = ../uae_cpu/fpu/fpu_uae.cpp

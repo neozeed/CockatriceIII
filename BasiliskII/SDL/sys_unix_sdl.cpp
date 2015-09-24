@@ -1012,7 +1012,7 @@ static void Sys_find_hfs_partition(file_handle *fh)
         delete[] map;
 }
 
-
+#ifndef WIN32
 void QuitEmulator()
 {
 	fflush(stdout);
@@ -1031,7 +1031,7 @@ void QuitEmulator()
 	
 	exit(0);
 }
-
+#endif
 
 
 // Let's sleep!
