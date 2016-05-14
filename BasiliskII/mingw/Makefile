@@ -1,5 +1,5 @@
 # Generated automatically from Makefile.in by configure.
-# Unix makefile for Basilisk II
+# Unix makefile for Cockatrice III
 
 ## System specific configuration
 
@@ -14,13 +14,14 @@ man1dir = $(mandir)/man1
 
 CC = gcc
 CXX = c++
-CFLAGS = -g -O2 -fno-strict-aliasing -fomit-frame-pointer -fopenmp 
-CXXFLAGS = -g -O2 -fno-strict-aliasing -fomit-frame-pointer -fopenmp 
+CFLAGS = -g -Ofast
+CXXFLAGS = -g -Ofast
 CPPFLAGS =  -I../include -I. -I../uae_cpu
 #DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DREGPARAM="__attribute__((regparm(3)))" -DX86_ASSEMBLY -D_REENTRANT -DDATADIR=\"$(datadir)/$(APP)\"
-DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DX86_ASSEMBLY -D_REENTRANT -DFPU_IEEE  #-DFPU_X86 -DFPU_UAE 
+#DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DX86_ASSEMBLY -D_REENTRANT -DFPU_IEEE  #-DFPU_X86 -DFPU_UAE 
+DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -D_REENTRANT -DFPU_IEEE
 LDFLAGS = 
-LIBS = ..\slirp\libslirp.a -lSDL -lws2_32  -liphlpapi  # -lSM -lICE  -lX11 -lXext  -lXxf86vm
+LIBS = ..\slirp\libslirp.a -lSDL -lws2_32  -liphlpapi  ..\drmingw-0.7.7-win32\lib\libexchndl.a
 SYSSRCS = ../pcap/sdl_pcap.cpp ../dummy/scsi_dummy.cpp audio_sdl.cpp  ../dummy/prefs_editor_dummy.cpp 
 CPUSRCS = ../uae_cpu/basilisk_glue.cpp ../uae_cpu/memory.cpp ../uae_cpu/newcpu.cpp ../uae_cpu/readcpu.cpp cpustbl.cpp cpudefs.cpp cpuemu.cpp
 #FPUSRCS = ../uae_cpu/fpu/fpu_uae.cpp
@@ -31,14 +32,14 @@ INSTALL_PROGRAM = ${INSTALL} -s
 INSTALL_DATA = ${INSTALL} -m 644
 
 ## Files
-SRCS = ../main.cpp ../sdl/main_sdl.cpp ../prefs.cpp ../dummy/prefs_dummy.cpp ../SDL/sys_unix_sdl.cpp \
+SRCS = ../main.cpp main_sdl.cpp ../prefs.cpp ../dummy/prefs_dummy.cpp ../SDL/sys_unix_sdl.cpp \
     ../rom_patches.cpp ../slot_rom.cpp ../rsrc_patches.cpp ../emul_op.cpp \
     ../macos_util.cpp ../xpram.cpp ../dummy/xpram_dummy.cpp ../timer.cpp ../SDL/timer_common.cpp \
     ../dummy/clip_dummy.cpp ../adb.cpp ../serial.cpp ../dummy/serial_dummy.cpp ../ether.cpp ../sony.cpp \
-    ../disk.cpp ../scsi.cpp ../video.cpp video_sdl.cpp ../audio.cpp \
+    ../disk.cpp ../cdrom.cpp ../scsi.cpp ../video.cpp video_sdl.cpp ../audio.cpp \
     ../extfs.cpp ../user_strings.cpp user_strings_unix.cpp  \
     $(SYSSRCS) $(CPUSRCS) $(FPUSRCS)
-APP = BasiliskII.exe
+APP = CockatriceIII.exe
 
 ## Rules
 .PHONY: modules install uninstall clean distclean depend dep
@@ -64,14 +65,35 @@ VPATH += $(addprefix :, $(subst  ,:, $(filter-out $($(subst, :, ,$(VPATH))), $(S
 $(APP): $(OBJ_DIR) $(OBJS)
 	$(CXX) -o $(APP) $(LDFLAGS) $(OBJS) $(LIBS)
 
+modules:
+	cd Linux/NetDriver; make
+
+install: $(APP) installdirs
+	$(INSTALL_PROGRAM) $(APP) $(bindir)/$(APP)
+	-$(INSTALL_DATA) $(APP).1 $(man1dir)/$(APP).1
+	$(INSTALL_DATA) keycodes $(datadir)/$(APP)/keycodes
+	$(INSTALL_DATA) fbdevices $(datadir)/$(APP)/fbdevices
+
+installdirs:
+	$(SHELL) mkinstalldirs $(bindir) $(man1dir) $(datadir)/$(APP)
+
+uninstall:
+	rm -f $(bindir)/$(APP)
+	rm -f $(man1dir)/$(APP).1
+	rm -f $(datadir)/$(APP)/keycodes
+	rm -f $(datadir)/$(APP)/fbdevices
+	rmdir $(datadir)/$(APP)
 
 mostlyclean:
 	rm -f $(APP) $(OBJ_DIR)/* core* *.core *~ *.bak
 
 clean: mostlyclean
 	rm -f cpuemu.cpp cpudefs.cpp cputmp*.s cpufast*.s cpustbl.cpp cputbl.h
-	rm -rf $(OBJ_DIR)
 
+distclean: clean
+	rm -rf $(OBJ_DIR)
+	rm -f Makefile
+	rm -f config.cache config.log config.status config.h
 
 depend dep:
 	makedepend $(CPPFLAGS) -Y. $(SRCS) 2>/dev/null
@@ -94,7 +116,7 @@ cpudefs.cpp: $(OBJ_DIR)/build68k.exe ../uae_cpu/table68k
 cpustbl.cpp: cpuemu.cpp
 cputbl.h: cpuemu.cpp
 
-#comment these out to not build every time...
+#In the future, 2016, we don't need to break this into multiple programs.
 cpuemu.cpp: $(OBJ_DIR)/gencpu.exe
 	$(OBJ_DIR)/gencpu.exe
 

@@ -94,7 +94,8 @@ D(bug(" VideoInit %d\n",classic));
 if (classic)
 	depth =1;
 else depth=8;
-        int width = 512, height = 384;
+        //int width = 512, height = 384;
+	int width = 1152, height = 870;		//the old 21" Macintosh monitor
 
         if (mode_str) {
                 if (sscanf(mode_str, "win/%d/%d", &width, &height) == 2)
@@ -134,7 +135,7 @@ D(bug(" init_window w%d,h%d d%d\n",width,height,depth));
         flags=(SDL_SWSURFACE|SDL_HWPALETTE);
         if (!(SDLscreen = SDL_SetVideoMode(width, height, 8, flags)))
         printf("VID: Couldn't set video mode: %s\n", SDL_GetError());
-        SDL_WM_SetCaption("Basilisk II","Basilisk II");
+        SDL_WM_SetCaption("Cockatrice III 0.4g","Cockatrice III 0.4g");
 //SDL
 
                 int bytes_per_row = width;

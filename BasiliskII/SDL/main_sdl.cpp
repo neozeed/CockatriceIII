@@ -5,6 +5,7 @@
 #include <SDL\SDL_thread.h>
 #include <io.h>
 #include <direct.h>		//for _chdir
+#include "..\drmingw-0.7.7-win32\include\exchndl.h"
 #else
 #include <SDL/SDL.h>
 #include <SDL/SDL_main.h>
@@ -76,6 +77,7 @@ void fixstdio(void);
 //void usleep(long waitTime);
 extern void slirp_tic(void);	//to keep slirp happy
 
+
 #ifdef __APPLE__
 int SDL_main(int argc, char *argv[])
 #else
@@ -83,16 +85,23 @@ int main(int argc, char *argv[])
 #endif
 {
 
+	//	_chdir("c:\\test\\");
+	// Initialize variables
+#ifdef WIN32
+	//Setup DrMinGW
+	ExcHndlInit();
+#endif
 	RAMBaseHost = NULL;
 	ROMBaseHost = NULL;
 	srand(time(NULL));
 	tzset();
 
-	fixstdio();
+	//fixstdio();
 
 	// Print some info
 	printf(GetString(STR_ABOUT_TEXT1), VERSION_MAJOR, VERSION_MINOR);
 	printf(" %s\n", GetString(STR_ABOUT_TEXT2));
+	fflush(stdout);
 
 	// Parse arguments
 	for (int i=1; i<argc; i++) {
@@ -104,6 +113,7 @@ int main(int argc, char *argv[])
 
 	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_CDROM) < 0)
 	printf("VID: Couldn't load SDL: %s", SDL_GetError());
+	fflush(stdout);
 
 	
 	// Read preferences
@@ -142,6 +152,7 @@ int main(int argc, char *argv[])
 	}
 
 	printf(GetString(STR_READING_ROM_FILE));
+	fflush(stdout);
 	ROMSize = _lseek(rom_fd, 0L, SEEK_END);
 	if (ROMSize != 64*1024 && ROMSize != 128*1024 && ROMSize != 256*1024 && ROMSize != 512*1024 && ROMSize != 1024*1024) {
 		ErrorAlert(GetString(STR_ROM_SIZE_ERR));
@@ -163,6 +174,7 @@ int main(int argc, char *argv[])
 	if (!InitAll())
 		{
 		printf("failed to initalized. Exiting!\n");
+		fflush(stdout);
 		QuitEmulator();
 		}
 	
@@ -198,6 +210,7 @@ void SetInterruptFlag(uint32 flag)
 void ErrorAlert(const char *p)
 {
 	printf("%s",p);
+	fflush(stdout);
 }
 
 #if EMULATED_68K
@@ -221,6 +234,7 @@ void WarningAlert(const char *text)
 	display_alert(STR_WARNING_ALERT_TITLE, STR_GUI_WARNING_PREFIX, STR_OK_BUTTON, text);
 #else
 	printf(GetString(STR_SHELL_WARNING_PREFIX), text);
+	fflush(stdout);
 #endif
 }
 
@@ -232,6 +246,7 @@ void WarningAlert(const char *text)
 bool ChoiceAlert(const char *text, const char *pos, const char *neg)
 {
 	printf(GetString(STR_SHELL_WARNING_PREFIX), text);
+	fflush(stdout);
 	return false;	//!!
 }
 

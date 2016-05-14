@@ -49,7 +49,7 @@ extern void audio_set_speaker_volume(uint32 vol);
 
 // Current audio status
 struct audio_status {
-	uint32 sample_rate;		// 16.16 fixed point
+	int32 sample_rate;		// 16.16 fixed point
 	uint32 sample_size;		// 8 or 16
 	uint32 channels;		// 1 (mono) or 2 (stereo)
 	uint32 mixer;			// Mac address of Apple Mixer
@@ -62,7 +62,7 @@ extern int audio_frames_per_block;		// Number of audio frames per block
 extern uint32 audio_component_flags;	// Component feature flags
 
 extern int audio_num_sample_rates;		// Number of supported sample rates
-extern uint32 audio_sample_rates[];		// Array of supported sample rates (16.16 fixed point)
+extern int32 audio_sample_rates[];		// Array of supported sample rates (16.16 fixed point)
 extern int audio_num_sample_sizes;		// Number of supported sample sizes
 extern uint16 audio_sample_sizes[];		// Array of supported sample sizes
 extern int audio_num_channel_counts;	// Number of supported channel counts

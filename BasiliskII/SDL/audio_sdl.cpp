@@ -54,11 +54,12 @@ static void stream_func(void *arg, uint8 *stream, int stream_len);
 
 // Supported sample rates, sizes and channels
 int audio_num_sample_rates = 1;
-uint32 audio_sample_rates[] = {44100 << 16};//{44100 << 16};
-int audio_num_sample_sizes = 2;
-uint16 audio_sample_sizes[] = {16};//{8};
-int audio_num_channel_counts = 2;
-uint16 audio_channel_counts[] = {2};//{2};
+int32 audio_sample_rates[] = {44100 << 16};
+int audio_num_sample_sizes = 1;
+uint16 audio_sample_sizes[] = {16};
+int audio_num_channel_counts = 1;
+uint16 audio_channel_counts[] = {2};
+
 
 
 /*
@@ -79,7 +80,7 @@ static bool open_sdl_audio(void)
         int desired_bits=16;
 
         /* Set up the desired format */
-        desired.freq = 44100;//44100;   //11025? 22050?
+        desired.freq = 44100;   //11025? 22050?
         switch (desired_bits) {
                 case 8:
                         desired.format = AUDIO_U8;
@@ -94,8 +95,8 @@ static bool open_sdl_audio(void)
                         printf("not 8 or 16 sound!?\n");
                         return false;
         }
-        desired.channels = 2;//2;
-        desired.samples = 4096;//8192;//2048;
+        desired.channels = 2;
+        desired.samples = 2048;
         desired.callback = stream_func;
 
         /* Open the audio device */
@@ -310,6 +311,7 @@ void audio_set_main_mute(bool mute)
 
 void audio_set_main_volume(uint32 vol)
 {
+ printf("audio_set_main_volume %d\n",vol);
 }
 
 void audio_set_speaker_mute(bool mute)

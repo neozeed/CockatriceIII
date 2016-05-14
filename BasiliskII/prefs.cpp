@@ -87,16 +87,19 @@ void PrefsInit(void)
 
 	// Set defaults
 	SysAddSerialPrefs();
-	PrefsAddInt16("bootdriver", 0);
+	PrefsAddInt16("bootdriver", -33);
 	PrefsAddInt16("bootdrive", 0);
-	PrefsAddInt32("ramsize", 8 * 1024 * 1024);
-	PrefsAddInt32("frameskip", 6);
-	PrefsAddInt32("modelid", 5);	// Mac IIci
-	PrefsAddInt32("cpu", 3);		// 68030
-	PrefsAddBool("fpu", false);
+	PrefsAddInt32("ramsize", 64 * 1024 * 1024);
+	PrefsAddInt32("frameskip", 2);
+	PrefsAddInt32("modelid", 29);	// Quadra 800
+	PrefsAddInt32("cpu", 4);		// 68040
+	PrefsAddBool("fpu", false);		// 68040LC
 	PrefsAddBool("nocdrom", false);
 	PrefsAddBool("nosound", false);
 	PrefsAddBool("nogui", false);
+	PrefsAddString("screen","win/1152/870");	//fantastic monitor for the era
+	PrefsAddString("rom","Quadra800.rom");
+	PrefsAddString("ether","slirp");
 	AddPlatformPrefsDefaults();
 
 	// Load preferences from settings file
@@ -325,6 +328,10 @@ void LoadPrefsFromStream(FILE *f)
 
 		// Comments begin with "#" or ";"
 		if (line[0] == '#' || line[0] == ';')
+			continue;
+
+		// Kill short lines
+		if(strlen(line)<1)
 			continue;
 
 		// Terminate string after keyword

@@ -431,6 +431,8 @@ adat_error:	printf("FATAL: audio component data block initialization error\n");
 			WriteMacInt32(audio_data + adatData + scd_reserved, 0);
 			WriteMacInt32(audio_data + adatStreamInfo, 0);
 
+			D(bug(" scd size %d channels %d sample_size %d sample_rate %d frames_per_block %d\n", AudioStatus.sample_size,AudioStatus.channels,AudioStatus.sample_size,AudioStatus.sample_rate,audio_frames_per_block));
+
 			// Open Apple Mixer
 			r.a[0] = audio_data + adatMixer;
 			r.d[0] = 0;

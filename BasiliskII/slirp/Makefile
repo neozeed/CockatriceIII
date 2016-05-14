@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I. -O2 -Wall
+CFLAGS=-I. -Ofast -Wall
 DEPS =	bootp.h          config-host.h    config.h         ctl.h	\
 	debug.h          icmp_var.h       if.h             ip.h		\
 	ip_icmp.h        libslirp.h       main.h           mbuf.h	\
