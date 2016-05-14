@@ -1,0 +1,26 @@
+2 ICON "cockatrice.ico"
+
+1 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080904E4"
+    BEGIN
+      VALUE "CompanyName", "superglobalmegacorp.com"
+      VALUE "FileDescription", "Cockatrice III"
+      VALUE "FileVersion", "0.4g"
+      VALUE "InternalName", "cockatrice"
+      VALUE "LegalCopyright", "Super Global Mega Corp"
+      VALUE "OriginalFilename", "CockatriceIII.exe"
+      VALUE "ProductName", "Cockatrice III"
+      VALUE "ProductVersion", "0.4g"
+    END
+  END
+
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x809, 1252
+  END
+END
