@@ -25,6 +25,7 @@ static int keycode_table[256];		// X keycode -> Mac keycode translation table
 static int32 frame_skip;
 static int32 skip_count=0;
 static int32 quitcount=0;
+static int32 bytes_per_pixel;
 int depth;	//how deep is the display
 // Prefs items
 
@@ -94,7 +95,7 @@ classic_mode = classic;
 D(bug(" VideoInit %d\n",classic));
 if (classic)
 	depth =1;
-else depth=8;
+else depth=8;	/* lame hardcode, as it only paints 2/3rds the screen with a warped palette.	*/
         //int width = 512, height = 384;
 	int width = 1152, height = 870;		//the old 21" Macintosh monitor
 
@@ -134,7 +135,7 @@ D(bug(" init_window w%d,h%d d%d\n",width,height,depth));
 		{printf("There was an issue with SDL trying to initalize video.\n");
                 exit(0);}
         flags=(SDL_SWSURFACE|SDL_HWPALETTE);
-        if (!(SDLscreen = SDL_SetVideoMode(width, height, 8, flags)))
+        if (!(SDLscreen = SDL_SetVideoMode(width, height, depth, flags)))
         printf("VID: Couldn't set video mode: %s\n", SDL_GetError());
         SDL_WM_SetCaption(VERSION_STRING,VERSION_STRING);
 //SDL
@@ -142,15 +143,22 @@ D(bug(" init_window w%d,h%d d%d\n",width,height,depth));
                 int bytes_per_row = width;
                 switch (depth) {
                         case 1:
-                                bytes_per_row /= 8;
+                                bytes_per_row *= 1;
+				bytes_per_pixel=1;
                                 break;
+			case 8:
+				bytes_per_row *=1;
+				bytes_per_pixel=1;
+				break;
                         case 15:
                         case 16:
                                 bytes_per_row *= 2;
+				bytes_per_pixel=2;
                                 break;
                         case 24:
                         case 32:
                                 bytes_per_row *= 4;
+				bytes_per_pixel=4;
                                 break;
                 }
 		D(bug(" bytes per row %d\n",bytes_per_row));
@@ -173,29 +181,35 @@ void set_video_monitor(int width, int height, int bytes_per_row)
                 case 1:
                         layout = FLAYOUT_DIRECT;
                         VideoMonitor.mode = VMODE_1BIT;
+			bytes_per_pixel=1;
                         break;
                 case 8:
                         layout = FLAYOUT_DIRECT;
                         VideoMonitor.mode = VMODE_8BIT;
+			bytes_per_pixel=1;
                         break;
                 case 15:
                         layout = FLAYOUT_HOST_555;
                         VideoMonitor.mode = VMODE_16BIT;
+			bytes_per_pixel=2;
                         break;
                 case 16:
                         layout = FLAYOUT_HOST_565;
+			bytes_per_pixel=2;
                         VideoMonitor.mode = VMODE_16BIT;
                         break;
                 case 24:
                 case 32:
                         layout = FLAYOUT_HOST_888;
                         VideoMonitor.mode = VMODE_32BIT;
+			bytes_per_pixel=4;
                         break;
         }
         VideoMonitor.x = width;
         VideoMonitor.y = height;
         VideoMonitor.bytes_per_row = bytes_per_row;
-        MacFrameLayout = FLAYOUT_DIRECT;
+	MacFrameLayout = FLAYOUT_DIRECT;
+printf("SDL_Video %dx%d %dbit deep/size %d\n",height,width,depth,bytes_per_pixel);
 }
 
 
@@ -204,14 +218,36 @@ void VideoExit(void)
 
 void VideoInterrupt(void)
 {
+int lx,ly=0;
+void* p;
+int count=0;
 if(skip_count++>frame_skip){
 	if(classic_mode)
 		Mac2Host_memcpy(the_buffer, 0x3fa700, VideoMonitor.bytes_per_row * VideoMonitor.y);
 	else
-		memcpy(SDLscreen->pixels,the_buffer,VideoMonitor.bytes_per_row*VideoMonitor.y);
+	switch (depth) {
+		case 8:
+			memcpy(SDLscreen->pixels,the_buffer,VideoMonitor.bytes_per_row*VideoMonitor.y);
+			break;
+		 case 16: case 24: case 32:
+			p=SDLscreen->pixels;
+			for(ly=0;ly<VideoMonitor.y*bytes_per_pixel;ly+=bytes_per_pixel)
+				{
+				for(lx=0;lx<VideoMonitor.x*bytes_per_pixel;lx+=bytes_per_pixel)
+					{
+					memcpy(SDLscreen->pixels+(ly*VideoMonitor.y+lx),the_buffer+(ly*VideoMonitor.y+lx)+1,bytes_per_pixel);
+					count+=bytes_per_pixel;
+					}
+				}
+			break;
+		default:
+			break;
+		}
 	SDL_UpdateRect(SDLscreen,0,0,0,0);
 	skip_count=0;
 		}
+//if(count>0)
+//	printf("drew %d/%d pels\n",count,VideoMonitor.bytes_per_row*VideoMonitor.y);
 doevents();
 }
 
