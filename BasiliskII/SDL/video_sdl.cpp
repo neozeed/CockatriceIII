@@ -11,6 +11,7 @@
 #include "prefs.h"
 #include "user_strings.h"
 #include "video.h"
+#include "version.h"
 
 #define DEBUG 0
 #include "debug.h"
@@ -135,7 +136,7 @@ D(bug(" init_window w%d,h%d d%d\n",width,height,depth));
         flags=(SDL_SWSURFACE|SDL_HWPALETTE);
         if (!(SDLscreen = SDL_SetVideoMode(width, height, 8, flags)))
         printf("VID: Couldn't set video mode: %s\n", SDL_GetError());
-        SDL_WM_SetCaption("Cockatrice III 0.4g","Cockatrice III 0.4g");
+        SDL_WM_SetCaption(VERSION_STRING,VERSION_STRING);
 //SDL
 
                 int bytes_per_row = width;
@@ -403,15 +404,13 @@ static int kc_decode(SDL_keysym const & ks, bool key_down)
 
 //	case SDLK_BACKQUOTE: case SDLK_asciitilde: return 0x0a;
 	case SDLK_BACKQUOTE: return 0x32;
-	case SDLK_BACKSLASH: return 0x0a;
+	case SDLK_BACKSLASH: return 0x2a;
 	case SDLK_MINUS: case SDLK_UNDERSCORE: return 0x1b;
 	case SDLK_EQUALS: case SDLK_PLUS: return 0x18;
-//	case SDLK_bracketleft: case SDLK_braceleft: return 0x21;
 	case SDLK_LEFTBRACKET: return 0x21;
-//	case SDLK_bracketright: case SDLK_braceright: return 0x1e;
 	case SDLK_RIGHTBRACKET: return 0x1e;
-//	case SDLK_BACKSLASH: case SDLK_bar: return 0x2a;
 	case SDLK_SEMICOLON: case SDLK_COLON: return 0x29;
+	case SDLK_QUOTE: case SDLK_QUOTEDBL: return 0x27;
 //	case SDLK_apostrophe: case SDLK_QUOTEDBL: return 0x27;
 	case SDLK_COMMA: case SDLK_LESS: return 0x2b;
 	case SDLK_PERIOD: case SDLK_GREATER: return 0x2f;

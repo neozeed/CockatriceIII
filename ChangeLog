@@ -1,3 +1,17 @@
+v0.4g 15.May.2016
+	- Fixed some stupid mappings in the keyboard
+	- Just forced the sound to 16bit 44100, and tested with Quicktime & 
+	  Simcity 2000.
+	- added in some branding elemnets, a Windows icon.
+	- changed the version to reflect Cockatrice III
+	- changed the perfs file, and updated default prefrences to my
+	  test setup (Quadra 800)
+	- Building with GCC 6.1.0 on MinGW.  Changed flags to -Ofast
+	  as it was the fastest generic flags I could see
+
+v0.0 (release 0.0-3) - 17.Sep.2015
+	- Corrected stupid SLiRP bug, introduced by me. :(
+
 v0.0 (release 0.0-2) - 14.Oct.2014
 	- More mutexes and fixes on slirp.
 	- some improvements in blocking and timings with PCAP
