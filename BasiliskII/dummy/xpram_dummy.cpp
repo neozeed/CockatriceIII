@@ -27,7 +27,7 @@
 
 
 // XPRAM file name and path
-const char XPRAM_FILE_NAME[] = "BasiliskII_XPRAM";
+const char XPRAM_FILE_NAME[] = "CockatriceIII_XPRAM";
 
 
 /*
