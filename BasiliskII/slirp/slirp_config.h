@@ -31,6 +31,7 @@
 /* interactive sessions less responsive */
 /* XXXXX Talk about having fast modem as unit 0 */
 #undef FULL_BOLT
+//#define FULL_BOLT
 
 /*
  * Define if you want slirp to use less CPU

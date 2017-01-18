@@ -45,13 +45,18 @@ typedef unsigned long 	ioctlsockopt_t;
 # include <sys/timeb.h>
 # include <iphlpapi.h>
 
+#ifdef _WIN32
 # define USE_FIONBIO 1
+#endif
+
+#ifdef __GNUC__		//MINGW?
 # define EWOULDBLOCK WSAEWOULDBLOCK
 # define EINPROGRESS WSAEINPROGRESS
 # define ENOTCONN WSAENOTCONN
 # define EHOSTUNREACH WSAEHOSTUNREACH
 # define ENETUNREACH WSAENETUNREACH
 # define ECONNREFUSED WSAECONNREFUSED
+#endif
 
 /* Basilisk II Router defines those */
 # define udp_read_completion slirp_udp_read_completion
@@ -243,8 +248,8 @@ int inet_aton _P((const char *cp, struct in_addr *ia));
 #define PACK_END 0
 #define PACKED__
 #elif _MSC_VER
-//#define PRAGMA_PACK_SUPPORTED 1
-//#define PACK_END 4
+#define PRAGMA_PACK_SUPPORTED 1
+#define PACK_END 4
 #define PACKED__
 #else
 #error "Packed attribute or pragma shall be supported"

@@ -8,11 +8,13 @@
 #define WANT_SYS_IOCTL_H
 #include <stdlib.h>
 #include "slirp.h"
+#include "socket.h"
 #include "ip_icmp.h"
 #include "main.h"
 #ifdef __sun__
 #include <sys/filio.h>
 #endif
+
 
 #ifndef FIONREAD
 #include <sys/ioctl.h>
@@ -26,12 +28,7 @@ so_init()
 
 
 struct SLIRPsocket *
-solookup(head, laddr, lport, faddr, fport)
-	struct SLIRPsocket *head;
-	struct in_addr laddr;
-	u_int lport;
-	struct in_addr faddr;
-	u_int fport;
+solookup(struct SLIRPsocket *head, struct in_addr laddr, u_int lport, struct in_addr faddr, u_int fport)
 {
 	struct SLIRPsocket *so;
 	
@@ -72,11 +69,10 @@ socreate()
  * remque and free a socket, clobber cache
  */
 void
-sofree(so)
-	struct SLIRPsocket *so;
+sofree(struct SLIRPsocket *so)
 {
   if (so->so_emu==EMU_RSH && so->extra) {
-	sofree(so->extra);
+	sofree((struct SLIRPsocket*)so->extra);
 	so->extra=NULL;
   }
   if (so == tcp_last_so)
@@ -99,8 +95,7 @@ sofree(so)
  * a read() of 0 (or less) means it's disconnected
  */
 int
-soread(so)
-	struct SLIRPsocket *so;
+soread(struct SLIRPsocket *so)
 {
 	int n, nn, lss, total;
 	struct sbuf *sb = &so->so_snd;
@@ -214,8 +209,7 @@ soread(so)
  * in the send buffer is sent as urgent data
  */
 void
-sorecvoob(so)
-	struct SLIRPsocket *so;
+sorecvoob(struct SLIRPsocket *so)
 {
 	struct tcpcb *tp = sototcpcb(so);
 
@@ -242,8 +236,7 @@ sorecvoob(so)
  * There's a lot duplicated code here, but...
  */
 int
-sosendoob(so)
-	struct SLIRPsocket *so;
+sosendoob(struct SLIRPsocket *so)
 {
 	struct sbuf *sb = &so->so_rcv;
 	char buff[2048]; /* XXX Shouldn't be sending more oob data than this */
@@ -301,8 +294,7 @@ sosendoob(so)
  * updating all sbuf field as necessary
  */
 int
-sowrite(so)
-	struct SLIRPsocket *so;
+sowrite(struct SLIRPsocket *so)
 {
 	int  n,nn;
 	struct sbuf *sb = &so->so_rcv;
@@ -394,8 +386,7 @@ sowrite(so)
  * recvfrom() a UDP socket
  */
 void
-sorecvfrom(so)
-	struct SLIRPsocket *so;
+sorecvfrom(struct SLIRPsocket *so)
 {
 	struct sockaddr_in addr;
 	socklen_t addrlen = sizeof(struct sockaddr_in);
@@ -495,9 +486,7 @@ sorecvfrom(so)
  * sendto() a socket
  */
 int
-sosendto(so, m)
-	struct SLIRPsocket *so;
-	struct SLIRPmbuf *m;
+sosendto(struct SLIRPsocket *so, struct SLIRPmbuf *m)
 {
 	int ret;
 	struct sockaddr_in addr;
@@ -544,11 +533,7 @@ sosendto(so, m)
  * XXX This should really be tcp_listen
  */
 struct SLIRPsocket *
-solisten(port, laddr, lport, flags)
-	u_int port;
-	u_int32_t laddr;
-	u_int lport;
-	int flags;
+solisten(u_int port, u_int32_t laddr, u_int lport, int flags)
 {
 	struct sockaddr_in addr;
 	struct SLIRPsocket *so;
@@ -595,7 +580,7 @@ solisten(port, laddr, lport, flags)
 	    (listen(s,1) < 0)) {
 		int tmperrno = errno; /* Don't clobber the real reason we failed */
 		
-		close(s);
+		closesocket(s);
 		sofree(so);
 		/* Restore the real errno */
 #ifdef _WIN32
@@ -624,8 +609,7 @@ solisten(port, laddr, lport, flags)
  * XXX not yet...
  */
 void
-sorwakeup(so)
-	struct SLIRPsocket *so;
+sorwakeup(struct SLIRPsocket *so)
 {
 /*	sowrite(so); */
 /*	FD_CLR(so->s,&writefds); */
@@ -637,8 +621,7 @@ sorwakeup(so)
  * For now, don't read, it'll be done in the main loop
  */
 void
-sowwakeup(so)
-	struct SLIRPsocket *so;
+sowwakeup(struct SLIRPsocket *so)
 {
 	/* Nothing, yet */
 }
@@ -650,8 +633,7 @@ sowwakeup(so)
  * times each when only 1 was needed
  */
 void
-soisfconnecting(so)
-	register struct SLIRPsocket *so;
+soisfconnecting(register struct SLIRPsocket *so)
 {
 	so->so_state &= ~(SS_NOFDREF|SS_ISFCONNECTED|SS_FCANTRCVMORE|
 			  SS_FCANTSENDMORE|SS_FWDRAIN);
@@ -659,16 +641,14 @@ soisfconnecting(so)
 }
 
 void
-soisfconnected(so)
-        register struct SLIRPsocket *so;
+soisfconnected(register struct SLIRPsocket *so)
 {
 	so->so_state &= ~(SS_ISFCONNECTING|SS_FWDRAIN|SS_NOFDREF);
 	so->so_state |= SS_ISFCONNECTED; /* Clobber other states */
 }
 
 void
-sofcantrcvmore(so)
-	struct  SLIRPsocket *so;
+sofcantrcvmore(struct  SLIRPsocket *so)
 {
 	if ((so->so_state & SS_NOFDREF) == 0) {
 		shutdown(so->s,0);
@@ -684,8 +664,7 @@ sofcantrcvmore(so)
 }
 
 void
-sofcantsendmore(so)
-	struct SLIRPsocket *so;
+sofcantsendmore(struct SLIRPsocket *so)
 {
 	if ((so->so_state & SS_NOFDREF) == 0) {
             shutdown(so->s,1);           /* send FIN to fhost */
@@ -704,8 +683,7 @@ sofcantsendmore(so)
 }
 
 void
-soisfdisconnected(so)
-	struct SLIRPsocket *so;
+soisfdisconnected(struct SLIRPsocket *so)
 {
 /*	so->so_state &= ~(SS_ISFCONNECTING|SS_ISFCONNECTED); */
 /*	close(so->s); */
@@ -720,8 +698,7 @@ soisfdisconnected(so)
  * Set CANTSENDMORE once all data has been write()n
  */
 void
-sofwdrain(so)
-	struct SLIRPsocket *so;
+sofwdrain(struct SLIRPsocket *so)
 {
 	if (so->so_rcv.sb_cc)
 		so->so_state |= SS_FWDRAIN;

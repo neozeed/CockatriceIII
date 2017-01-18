@@ -21,8 +21,7 @@ struct	SLIRPmbuf *next_m;			/* Pointer to next SLIRPmbuf to output */
 #define ifs_init(ifm) ((ifm)->ifs_next = (ifm)->ifs_prev = (ifm))
 
 void
-ifs_insque(ifm, ifmhead)
-	struct SLIRPmbuf *ifm, *ifmhead;
+ifs_insque(struct SLIRPmbuf *ifm,struct SLIRPmbuf *ifmhead)
 {
 	ifm->ifs_next = ifmhead->ifs_next;
 	ifmhead->ifs_next = ifm;
@@ -31,8 +30,7 @@ ifs_insque(ifm, ifmhead)
 }
 
 void
-ifs_remque(ifm)
-	struct SLIRPmbuf *ifm;
+ifs_remque(struct SLIRPmbuf *ifm)
 {
 	ifm->ifs_prev->ifs_next = ifm->ifs_next;
 	ifm->ifs_next->ifs_prev = ifm->ifs_prev;
@@ -157,9 +155,7 @@ if_input(ttyp)
  * it'll temporarily get downgraded to the batchq)
  */
 void
-if_output(so, ifm)
-	struct SLIRPsocket *so;
-	struct SLIRPmbuf *ifm;
+if_output(struct SLIRPsocket *so,struct SLIRPmbuf *ifm)
 {
 	struct SLIRPmbuf *ifq;
 	int on_fastq = 1;

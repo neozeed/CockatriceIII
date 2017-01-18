@@ -16,7 +16,7 @@ int dostats = 0;
 #endif
 int slirp_debug = 0;
 
-extern char *strerror _P((int));
+//extern char *strerror _P((int));
 
 /* Carry over one item from main.c so that the tty's restored. 
  * Only done when the tty being used is /dev/tty --RedWolf */
@@ -25,9 +25,7 @@ extern int slirp_tty_restore;
 
 
 void
-debug_init(file, dbg)
-	char *file;
-	int dbg;
+debug_init(char *file, int dbg)
 {
 	/* Close the old debugging file */
 	if (dfd)
@@ -391,8 +389,7 @@ void purgesocks(void)
 
 #if 1
 void
-slirp_exit(exit_status)
-	int exit_status;
+slirp_exit(int exit_status)
 {
 //	struct ttys *ttyp;
 	

@@ -23,6 +23,12 @@
  */
 
 #include "slirp.h"
+#include <stdio.h>
+#include <stdlib.h>
+#ifndef __GNUC__
+//to get open/close/lseek ...
+#include <CORECRT_IO.H>
+#endif
 
 struct tftp_session {
     int in_use;
@@ -137,7 +143,8 @@ static int tftp_send_error(struct tftp_session *spt,
   memset(m->m_data, 0, m->m_size);
 
   m->m_data += if_maxlinkhdr;
-  tp = (void *)m->m_data;
+//  tp = (void *)m->m_data;
+    tp = (struct tftp_t*)m->m_data;
   m->m_data += sizeof(struct udpiphdr);
   
   tp->tp_op = htons(TFTP_ERROR);
@@ -183,7 +190,8 @@ static int tftp_send_data(struct tftp_session *spt,
   memset(m->m_data, 0, m->m_size);
 
   m->m_data += if_maxlinkhdr;
-  tp = (void *)m->m_data;
+//  tp = (void *)m->m_data;
+    tp = (struct tftp_t *)m->m_data;
   m->m_data += sizeof(struct udpiphdr);
   
   tp->tp_op = htons(TFTP_DATA);

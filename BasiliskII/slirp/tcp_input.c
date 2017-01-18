@@ -111,10 +111,7 @@ tcp_seq tcp_iss;                /* tcp initial send seq # */
 #endif
 
 int
-tcp_reass(tp, ti, m)
-	struct tcpcb *tp;
-	struct tcpiphdr *ti;
-	struct SLIRPmbuf *m;
+tcp_reass(struct tcpcb *tp,	struct tcpiphdr *ti, struct SLIRPmbuf *m)
 {
 	struct tcpiphdr *q;
 	struct SLIRPsocket *so = tp->t_socket;
@@ -230,10 +227,7 @@ present:
  * protocol specification dated September, 1981 very closely.
  */
 void
-tcp_input(m, iphlen, inso)
-	struct SLIRPmbuf *m;
-	int iphlen;
-	struct SLIRPsocket *inso;
+tcp_input(struct SLIRPmbuf *m, int iphlen, struct SLIRPsocket *inso)
 {
   	struct ip save_ip, *ip;
 	struct tcpiphdr *ti;
@@ -1437,6 +1431,22 @@ dodata:
  *	       ((so->so_iptos & IPTOS_LOWDELAY) &&
  *	       ((struct tcpiphdr_2 *)ti)->first_char == (char)27)) {
  */
+/*
+
+ Even when compiled with "-DFULL_BOLT", slirp applies a small delay to
+ TCP ACKs, which results in the upload speed being capped to circa 46Kb/s.
+ Manfread Haertel published a tiny patch for this on the UML mailing list:
+ http://article.gmane.org/gmane.linux.uml.user/13973
+ .
+Author: Manfred Haertel <Manfred.Haertel <at> rz-online.de>
+Bug-Debian: http://bugs.debian.org/658359
+
+*/
+#if 1
+                       tp->t_flags |= TF_ACKNOW;
+                       tcp_output(tp);
+#else
+
 	if (ti->ti_len && (unsigned)ti->ti_len <= 5 &&
 	    ((struct tcpiphdr_2 *)ti)->first_char == (char)27) {
 		tp->t_flags |= TF_ACKNOW;
@@ -1448,6 +1458,7 @@ dodata:
 	if (needoutput || (tp->t_flags & TF_ACKNOW)) {
 		(void) tcp_output(tp);
 	}
+#endif
 	return;
 
 dropafterack:
@@ -1488,11 +1499,7 @@ drop:
  *	u_int32_t *ts_val, *ts_ecr;
  */
 void
-tcp_dooptions(tp, cp, cnt, ti)
-	struct tcpcb *tp;
-	u_char *cp;
-	int cnt;
-	struct tcpiphdr *ti;
+tcp_dooptions(struct tcpcb *tp,	u_char *cp,	int cnt, struct tcpiphdr *ti)
 {
 	u_int16_t mss;
 	int opt, optlen;
@@ -1603,9 +1610,7 @@ tcp_pulloutofband(so, ti, m)
  */
 
 void
-tcp_xmit_timer(tp, rtt)
-	struct tcpcb *tp;
-	int rtt;
+tcp_xmit_timer(struct tcpcb *tp,int rtt)
 {
 	short delta;
 
@@ -1693,9 +1698,7 @@ tcp_xmit_timer(tp, rtt)
  */
 
 int
-tcp_mss(tp, offer)
-        struct tcpcb *tp;
-        u_int offer;
+tcp_mss(struct tcpcb *tp, u_int offer)
 {
 	struct SLIRPsocket *so = tp->t_socket;
 	int mss;

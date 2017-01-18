@@ -70,9 +70,7 @@ redir_x(inaddr, start_port, display, screen)
 
 #ifndef HAVE_INET_ATON
 int
-inet_aton(cp, ia)
-	const char *cp;
-	struct in_addr *ia;
+inet_aton(const char *cp,struct in_addr *ia)
 {
 	u_int32_t addr = inet_addr(cp);
 	if (addr == 0xffffffff)
@@ -92,8 +90,8 @@ getouraddr()
 	struct hostent *he = NULL;
 #define ANCIENT
 	#ifdef ANCIENT	
-	if (gethostname(&buff,500) == 0)
-            he = gethostbyname(&buff);
+	if (gethostname((char*)buff,500) == 0)
+            he = gethostbyname((char*)buff);
         if (he)
             our_addr = *(struct in_addr *)he->h_addr;
         if (our_addr.s_addr == 0)
@@ -126,9 +124,7 @@ struct quehead_32 {
 };
 
 inline void
-insque_32(a, b)
-	void *a;
-	void *b;
+insque_32(void *a, void *b)
 {
 	register struct quehead_32 *element = (struct quehead_32 *) a;
 	register struct quehead_32 *head = (struct quehead_32 *) b;
@@ -140,8 +136,7 @@ insque_32(a, b)
 }
 
 inline void
-remque_32(a)
-	void *a;
+remque_32(void *a)
 {
 	register struct quehead_32 *element = (struct quehead_32 *) a;
 	((struct quehead_32 *)(element->qh_link))->qh_rlink = element->qh_rlink;
@@ -158,8 +153,7 @@ struct quehead {
 };
 
 void
-insque(a, b)
-	void *a, *b;
+insque(void *a, void *b)
 {
 	register struct quehead *element = (struct quehead *) a;
 	register struct quehead *head = (struct quehead *) b;
@@ -171,8 +165,7 @@ insque(a, b)
 }
 
 void
-remque(a)
-     void *a;
+remque(void *a)
 {
   register struct quehead *element = (struct quehead *) a;
   ((struct quehead *)(element->qh_link))->qh_rlink = element->qh_rlink;
@@ -185,12 +178,7 @@ remque(a)
 
 
 int
-add_exec(ex_ptr, do_pty, exec, addr, port)
-	struct ex_list **ex_ptr;
-	int do_pty;
-	char *exec;
-	int addr;
-	int port;
+add_exec(struct ex_list **ex_ptr, int do_pty, char *exec, int addr,	int port)
 {
 	struct ex_list *tmp_ptr;
 	
@@ -222,8 +210,7 @@ add_exec(ex_ptr, do_pty, exec, addr, port)
 #endif
 
 char *
-SLIRPstrerror(error)
-	int error;
+SLIRPstrerror(int error)
 {
 	if (error < sys_nerr)
 	   return sys_errlist[error];
@@ -237,10 +224,7 @@ SLIRPstrerror(error)
 #ifdef _WIN32
 
 int
-fork_exec(so, ex, do_pty)
-	struct SLIRPsocket *so;
-	char *ex;
-	int do_pty;
+fork_exec(struct SLIRPsocket *so,char *ex,int do_pty)
 {
     /* not implemented */
     return 0;
@@ -640,13 +624,16 @@ lprint(va_alist) va_dcl
 #endif
 {
 	va_list args;
-        
+	va_list args2;        
 #ifdef __STDC__
         va_start(args, format);
+	va_start(args2, format);
 #else
         char *format;
         va_start(args);
+	va_start(args2);
         format = va_arg(args, char *);
+	va_arg(args2, char *); // skip
 #endif
 #if 0
 	/* If we're printing to an sbuf, make sure there's enough room */
@@ -690,15 +677,16 @@ lprint(va_alist) va_dcl
 			else
 			   bptr1++;
 		}
-		vfprintf(lfd, bptr2, args);
+		//vfprintf(lfd, bptr2, args);
+		vfprintf(lfd, bptr2, args2);
 		free(bptr2);
 	}
 	va_end(args);
+	va_end(args2);
 }
 
 void
-add_emu(buff)
-	char *buff;
+add_emu(char *buff)
 {
 	u_int lport, fport;
 	u_int8_t tos = 0, emu = 0;
@@ -824,8 +812,7 @@ sprintf_len(va_alist) va_dcl
 #endif
 
 void
-u_sleep(usec)
-	int usec;
+u_sleep(int usec)
 {
 	struct timeval t;
 	fd_set fdset;
@@ -843,8 +830,7 @@ u_sleep(usec)
  */
 
 void
-fd_nonblock(fd)
-	int fd;
+fd_nonblock(int fd)
 {
 #if defined USE_FIONBIO && defined FIONBIO
 	ioctlsockopt_t opt = 1;
@@ -860,8 +846,7 @@ fd_nonblock(fd)
 }
 
 void
-fd_block(fd)
-	int fd;
+fd_block(int fd)
 {
 #if defined USE_FIONBIO && defined FIONBIO
 	ioctlsockopt_t opt = 0;
