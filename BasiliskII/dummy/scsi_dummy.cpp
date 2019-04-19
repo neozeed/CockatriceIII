@@ -32,6 +32,12 @@ The excellent NeXT machine emulator!
 #include "prefs.h"
 #include "scsi.h"
 
+#ifdef WIN32_USE_DEVICEIOCONTROL
+	#include <windows.h>
+	#include <winioctl.h>
+	#include <stdio.h>
+#endif
+
 #define DEBUG 0
 #include "debug.h"
 
@@ -41,8 +47,8 @@ The excellent NeXT machine emulator!
 #define COMMAND_ReadInt32(a, i) (((unsigned) a[i] << 24) | ((unsigned) a[i + 1] << 16) | ((unsigned) a[i + 2] << 8) | a[i + 3])
 
 
-#define BLOCKSIZE 512
-#define CDBLOCKSIZE 2048
+//#define BLOCKSIZE 512
+//#define CDBLOCKSIZE 2048
 
 #define LUN_DISK 0 // for now only LUN 0 is valid for our phys drives
 
@@ -255,9 +261,13 @@ static unsigned char CDinquiry_bytes[] =
 /* SCSI disk */
 struct SCSIdiskst {
     FILE* dsk;
-
-    uint32 size;
+	
+	const char *path; // path to the file
+	
+    //uint32 size;
+	ULONGLONG size;
     bool cdrom;
+	bool isPhysical;
     uint8 lun;
     uint8 status;
     uint8 message;
@@ -269,6 +279,13 @@ struct SCSIdiskst {
         uint32 info;
     } sense;
     
+	struct geometryst{
+		uint32 sectors;
+		uint32 heads;
+		uint32 cylinders;
+		uint32 blocksize;
+	} geometry;
+	
     uint32 lba;
     uint32 blockcounter;
 } SCSIdisk[ESP_MAX_DEVS];
@@ -315,7 +332,7 @@ unsigned long SCSI_GetOffset(uint8 opcode, uint8 *cdb);
 int SCSI_GetCount(uint8 opcode, uint8 *cdb);
 void SCSI_ModeSense(uint8 *cdb);
 MODEPAGE SCSI_GetModePage(uint8 pagecode);
-void SCSI_GuessGeometry(uint32 size, uint32 *cylinders, uint32 *heads, uint32 *sectors);
+void SCSI_GuessGeometry(SCSIdiskst *disk, uint32 *cylinders, uint32 *heads, uint32 *sectors);
 void SCSI_WriteSector(uint8 *cdb);
 void scsi_write_sector(void);
 void SCSI_RequestSense(uint8 *cdb);
@@ -365,14 +382,23 @@ char prefs_name[16];
 	sprintf(prefs_name,"scsi%d",count);
 	const char *str = PrefsFindString(prefs_name);
 	if(str!=NULL) {
-		if(count==6)
-		SCSIdisk[count].dsk=fopen(str,"rb");
-		else
-		SCSIdisk[count].dsk=fopen(str,"rb+");
+		SCSIdisk[count].path = str;
+		SCSIdisk[count].isPhysical=false; // Assume false, SCSI_GuessGeometry will work it out for us.
+		
+		SCSIdisk[count].geometry.blocksize = 512; // default hdd block size
+		
+		if(count==6)  // cd-rom
+		{
+			SCSIdisk[count].dsk=fopen(str,"rb"); // read-only
+			SCSIdisk[count].geometry.blocksize = 2048;
+		}
+		else {
+			SCSIdisk[count].dsk=fopen(str,"rb+");  // read-write
+		}
 		if(SCSIdisk[count].dsk!=NULL){
-			fseek(SCSIdisk[count].dsk, 0, SEEK_END);
+			fseeko64(SCSIdisk[count].dsk, 0, SEEK_END);
 			SCSIdisk[count].size=ftell(SCSIdisk[count].dsk);
-			fseek(SCSIdisk[count].dsk, 0, SEEK_SET);
+			fseeko64(SCSIdisk[count].dsk, 0, SEEK_SET);
 			SCSIdisk[count].lun=0;
 
 			if(count==6)
@@ -382,8 +408,10 @@ char prefs_name[16];
 				}
 			else	{
 				SCSIdisk[count].cdrom=false;
-			SCSI_GuessGeometry(SCSIdisk[count].size, &cylinders, &heads, &sectors);
-		        printf("SCSI Unit %d:%s geometry: %i sectors, %i cylinders, %i heads\n",count,str, sectors, cylinders, heads);
+				// guess the geometry first so we don't have issues getting the disk?
+				SCSI_GuessGeometry(&SCSIdisk[count], &cylinders, &heads, &sectors);
+				
+		        printf("SCSI Unit %d:%s geometry: %i sectors, %i cylinders, %i heads, %llu size, %i blocksize\n",count,str, sectors, cylinders, heads, SCSIdisk[count].size, SCSIdisk[count].geometry.blocksize);
 				}
 			}	//end populate scsi
 		else{printf("Error opening up [%s]\n",str);}
@@ -727,16 +755,19 @@ void SCSI_StartStop(uint8 *cdb) {
 
 
 void SCSI_ReadCapacity(uint8 *cdb) {
-	int blocksize;
+	int blocksize = SCSIdisk[target].geometry.blocksize;
 
-	if(target==6)
+	/*if(target==6)
 		blocksize=CDBLOCKSIZE;
 	else	
 		blocksize=BLOCKSIZE;
-    
+    */
+	
+	
     D(bug("[SCSI] Read disk image: size = %i byte\n", SCSIdisk[target].size));
   
-    uint32 sectors = (SCSIdisk[target].size / blocksize) - 1; /* last LBA */
+    //uint32 sectors = (SCSIdisk[target].size / blocksize) - 1; /* last LBA */
+	uint32 sectors = SCSIdisk[target].geometry.sectors - 1; /* last LBA */
     
     static uint8 scsi_disksize[8];
 
@@ -765,13 +796,15 @@ void SCSI_ReadCapacity(uint8 *cdb) {
 
 
 void SCSI_ReadSector(uint8 *cdb) {
-	int blocksize;
-
+	int blocksize = SCSIdisk[target].geometry.blocksize;
+	/*
 	if(target==6)
 		blocksize=CDBLOCKSIZE;
 	else	
 		blocksize=BLOCKSIZE;
-    
+    */
+	
+	
     SCSIdisk[target].lba = SCSI_GetOffset(cdb[0], cdb);
     SCSIdisk[target].blockcounter = SCSI_GetCount(cdb[0], cdb);
     scsi_buffer.disk=true;
@@ -785,27 +818,30 @@ void SCSI_ReadSector(uint8 *cdb) {
 void scsi_read_sector(void) {
     //uint8 target = 1;	//SCSIbus.target;
 	int loop=0;
-	int blocksize;
+	int blocksize = SCSIdisk[target].geometry.blocksize;
 
+	/*
 	if(target==6)
 		blocksize=CDBLOCKSIZE;
 	else	
 		blocksize=BLOCKSIZE;
-    
+    */
+	
+	
+	
     if (SCSIdisk[target].blockcounter==0) {
         //SCSIbus.phase = PHASE_ST;
         return;
     }
 
-  	  int n;	
+    int n;	
 	while (SCSIdisk[target].blockcounter >0){
-   
 	    /* seek to the position */
-		if ((SCSIdisk[target].dsk==NULL) || (fseek(SCSIdisk[target].dsk, SCSIdisk[target].lba*blocksize, SEEK_SET) != 0)) {
+		if ((SCSIdisk[target].dsk==NULL) || (fseeko64(SCSIdisk[target].dsk, (ULONGLONG)((ULONGLONG)SCSIdisk[target].lba*(ULONGLONG)blocksize), SEEK_SET) != 0)) {
 	        n = 0;
 		} else {
 	        //n = fread(scsi_buffer.data+(loop*blocksize), blocksize, 1, SCSIdisk[target].dsk);
-		n = fread(buffer+(loop*blocksize), blocksize, 1, SCSIdisk[target].dsk);
+			n = fread(buffer+(loop*blocksize), blocksize, 1, SCSIdisk[target].dsk);
         	scsi_buffer.limit=scsi_buffer.size=blocksize;
 	    }
     
@@ -815,16 +851,16 @@ void scsi_read_sector(void) {
         	SCSIdisk[target].sense.valid = false;
 	        SCSIdisk[target].lba++;
 	       	SCSIdisk[target].blockcounter--;
-		//printf("scsi_read_sector ok\n");
+			//printf("scsi_read_sector ok\n");
 	    } else {
-		printf("ERROR WITH SCSI READ SECTOR!\n");
+			printf("ERROR WITH SCSI READ SECTOR!\n");
         	SCSIdisk[target].status = STAT_CHECK_COND;
 	        SCSIdisk[target].sense.code = SC_INVALID_LBA;
         	SCSIdisk[target].sense.valid = true;
 	        SCSIdisk[target].sense.info = SCSIdisk[target].lba;
         	//SCSIbus.phase = PHASE_ST;
 	    }
-	loop++;
+		loop++;
 	}//end while block counter >0
 
 }
@@ -847,7 +883,7 @@ void SCSI_WriteSector(uint8 *cdb) {
     }
     scsi_buffer.disk=true;
     scsi_buffer.size=0;
-    scsi_buffer.limit=BLOCKSIZE;
+    scsi_buffer.limit=SCSIdisk[target].geometry.blocksize; //BLOCKSIZE;
     //SCSIbus.phase = PHASE_DO;
     //printf("[SCSI] Write sector: %i block(s) at offset %i (blocksize: %i byte)",
     //           SCSIdisk[target].blockcounter, SCSIdisk[target].lba, BLOCKSIZE);
@@ -858,24 +894,25 @@ void scsi_write_sector(void) {
     //uint8 target = 1;	//SCSIbus.target;
     int loop = 0;
     int n=0;
-    
+    int blocksize = SCSIdisk[target].geometry.blocksize;
+	
 	while (SCSIdisk[target].blockcounter >0)
 	{
-//	    printf("[SCSI] Writing block at offset %i (%i blocks remaining).\n",
-//        	       SCSIdisk[target].lba,SCSIdisk[target].blockcounter-1);
+	    //printf("[SCSI] Writing block at offset %i (%i blocks remaining).\n",
+        	//       SCSIdisk[target].lba,SCSIdisk[target].blockcounter-1);
     
 	    /* seek to the position */
-		if ((SCSIdisk[target].dsk==NULL) || (fseek(SCSIdisk[target].dsk, SCSIdisk[target].lba*BLOCKSIZE, SEEK_SET) != 0)) {
+		if ((SCSIdisk[target].dsk==NULL) || (fseeko64(SCSIdisk[target].dsk, (ULONGLONG)((ULONGLONG)SCSIdisk[target].lba*(ULONGLONG)blocksize), SEEK_SET) != 0)) {
 	        n = 0;
 		} else {
 #if 1
 	        //n = fwrite(scsi_buffer.data+(loop*512), BLOCKSIZE, 1, SCSIdisk[target].dsk);
-		n = fwrite(buffer+(loop*512), BLOCKSIZE, 1, SCSIdisk[target].dsk);
+			n = fwrite(buffer+(loop*512), blocksize, 1, SCSIdisk[target].dsk);
 #else
 	        n=1;
 	        printf("[SCSI] WARNING: File write disabled!");
 #endif
-	        scsi_buffer.limit=BLOCKSIZE;
+	        scsi_buffer.limit=blocksize;
 	        scsi_buffer.size=0;
 	    }
     
@@ -889,7 +926,7 @@ void scsi_write_sector(void) {
 	            //SCSIbus.phase = PHASE_ST;
 	        }
 	    } else {
-		printf("write error!\n");
+			printf("write error!\n");
 	        SCSIdisk[target].status = STAT_CHECK_COND;
 	        SCSIdisk[target].sense.code = SC_INVALID_LBA;
 	        SCSIdisk[target].sense.valid = true;
@@ -932,17 +969,20 @@ int SCSI_GetCount(uint8 opcode, uint8 *cdb)
 
 void SCSI_ModeSense(uint8 *cdb) {
     //uint8 target = 1;	//SCSIbus.target;
-    int blocksize;
+    int blocksize = SCSIdisk[target].geometry.blocksize;
 
+		/*
 	if(target==6)
 	blocksize=CDBLOCKSIZE;
 	else
 	blocksize=BLOCKSIZE;
+*/
     
     uint8 retbuf[256];
     MODEPAGE page;
     
-    uint32 sectors = SCSIdisk[target].size / blocksize;
+    //uint32 sectors = SCSIdisk[target].size / blocksize;
+	uint32 sectors = SCSIdisk[target].geometry.sectors;
 
     uint8 pagecontrol = (cdb[2] & 0x0C) >> 6;
     uint8 pagecode = cdb[2] & 0x3F;
@@ -1067,12 +1107,13 @@ void SCSI_ModeSense(uint8 *cdb) {
 
 MODEPAGE SCSI_GetModePage(uint8 pagecode) {
     //uint8 target = 1;//SCSIbus.target;
-	int blocksize;
+	int blocksize = SCSIdisk[target].geometry.blocksize;
+	/*
 	if(target==6)
 	blocksize=CDBLOCKSIZE;
 	else
 	blocksize=BLOCKSIZE;
-    
+    */
     MODEPAGE page;
     
     switch (pagecode) {
@@ -1104,11 +1145,12 @@ MODEPAGE SCSI_GetModePage(uint8 pagecode) {
 
         case 0x04: // rigid disc geometry page
         {
-            uint32 num_sectors = SCSIdisk[target].size/blocksize;
-            
+            //uint32 num_sectors = SCSIdisk[target].size/blocksize;
+			
+			uint32 num_sectors = SCSIdisk[target].geometry.sectors;
             uint32 cylinders, heads, sectors;
 
-            SCSI_GuessGeometry(num_sectors, &cylinders, &heads, &sectors);
+            SCSI_GuessGeometry(&SCSIdisk[target], &cylinders, &heads, &sectors);
             
             D(bug("[SCSI] Disk geometry: %i sectors, %i cylinders, %i heads\n", sectors, cylinders, heads));
             
@@ -1133,8 +1175,13 @@ MODEPAGE SCSI_GetModePage(uint8 pagecode) {
             page.modepage[17] = 0x00; // &0x03: rotational position locking
             page.modepage[18] = 0x00; // rotational position lock offset
             page.modepage[19] = 0x00; // reserved
-		if(target==6)
-		{page.modepage[2]=0;page.modepage[3]=0;page.modepage[4]=0;page.modepage[5]=0;}
+		if(target==6) // CD-ROM
+		{
+			page.modepage[2]=0;
+			page.modepage[3]=0;
+			page.modepage[4]=0;
+			page.modepage[5]=0;
+			}
         }
             break;
 	case 0x30: // Special code page for apple.
@@ -1222,10 +1269,69 @@ MODEPAGE SCSI_GetModePage(uint8 pagecode) {
 
 
 
-void SCSI_GuessGeometry(uint32 size, uint32 *cylinders, uint32 *heads, uint32 *sectors)
+void SCSI_GuessGeometry(SCSIdiskst *disk, uint32 *cylinders, uint32 *heads, uint32 *sectors)
 {
-    uint32 c,h,s;
+    uint32 c,h,s, size = disk->size;
+	const char *path = disk->path;
     
+	// Hack in our Win32 DeviceIoControl
+	#ifdef WIN32_USE_DEVICEIOCONTROL
+		
+		  DISK_GEOMETRY pdg = { 0 }; 			  // disk drive geometry structure
+		  HANDLE hDevice = INVALID_HANDLE_VALUE;  // handle to the drive to be examined 
+		  BOOL bResult   = FALSE;                 // results flag
+		  DWORD junk     = 0;                     // discard results
+
+		  hDevice = CreateFile(path,          // drive to open
+								0,                // no access to the drive
+								FILE_SHARE_READ //| // share mode
+								//FILE_SHARE_WRITE, 
+								,
+								NULL,             // default security attributes
+								OPEN_EXISTING,    // disposition
+								0,                // file attributes
+								NULL);            // do not copy file attributes
+
+		  if (hDevice != INVALID_HANDLE_VALUE)    // We can access the drive
+		  {
+			   bResult = DeviceIoControl(hDevice,                       // device to be queried
+									IOCTL_DISK_GET_DRIVE_GEOMETRY, // operation to perform
+									NULL, 0,                       // no input buffer
+									&pdg, sizeof(pdg),            // output buffer
+									&junk,                         // # bytes returned
+									(LPOVERLAPPED) NULL);          // synchronous I/O
+
+			  CloseHandle(hDevice);
+			  
+			  if (bResult) {
+			  
+				  c = (uint32)(pdg.Cylinders.QuadPart);
+				  s = (uint32)(pdg.Cylinders.QuadPart * pdg.TracksPerCylinder * pdg.SectorsPerTrack);
+				  h = 255;
+				  
+				  *cylinders = c;
+				  *sectors = s;
+				  *heads = h; // whats the best way to do this? Windows via WMI seems to give 255 - but will it in all situations?
+				  
+				  // Spec the size, this isn't returned normally for physical disks
+				  disk->size = (ULONGLONG)(pdg.Cylinders.QuadPart * (ULONG)pdg.TracksPerCylinder *
+								(ULONG)pdg.SectorsPerTrack * (ULONG)pdg.BytesPerSector);
+				  // Set the geometry data.
+				  disk->isPhysical = true; // we have a physical disk
+				  disk->geometry.cylinders = c;
+				  disk->geometry.sectors = s;
+				  disk->geometry.heads = h;
+				  disk->geometry.blocksize = pdg.BytesPerSector;
+				  
+				  // should do something about whether it's removeable or not.
+				  
+				  
+				  return;
+			  }
+		  } // fall through to guessing
+		
+	#endif
+	
     for (h=16; h>0; h--) {
         for (s=63; s>15; s--) {
             if ((size%(s*h))==0) {
@@ -1234,6 +1340,9 @@ void SCSI_GuessGeometry(uint32 size, uint32 *cylinders, uint32 *heads, uint32 *s
                 *heads=h;
                 *sectors=s;
 	    //printf("[SCSI] Disk geometry: using %d cylinders %d heads %sectors.\n",cylinders,heads,sectors);
+				disk->geometry.cylinders = c;
+			    disk->geometry.sectors = s;
+			    disk->geometry.heads = h;
                 return;
             }
         }
@@ -1249,6 +1358,11 @@ void SCSI_GuessGeometry(uint32 size, uint32 *cylinders, uint32 *heads, uint32 *s
     *cylinders=c;
     *heads=h;
     *sectors=s;
+	
+	disk->geometry.cylinders = c;
+	disk->geometry.sectors = s;
+	disk->geometry.heads = h;
+	
 }
 
 

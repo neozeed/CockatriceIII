@@ -94,6 +94,9 @@
 /* Define if you have the readline library (-lreadline).  */
 /* #undef HAVE_LIBREADLINE */
 
+/* Hack in for Win32 DeviceIoControl */
+#define WIN32_USE_DEVICEIOCONTROL 1
+
 
 #define FPU_USE_NATIVE_FLAGS 1
 //these are now in the makefile
