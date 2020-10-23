@@ -86,10 +86,7 @@ static bool open_sdl_audio(void)
                         desired.format = AUDIO_U8;
                         break;
                 case 16:
-                        if ( SDL_BYTEORDER == SDL_BIG_ENDIAN )
-                                desired.format = AUDIO_S16MSB;
-                        else
-                                desired.format = AUDIO_S16LSB;
+                        desired.format = AUDIO_S16MSB;
                         break;
                 default:
                         printf("not 8 or 16 sound!?\n");
@@ -108,18 +105,14 @@ static bool open_sdl_audio(void)
                 case AUDIO_U8:
                         /* Supported */
                         break;
-                case AUDIO_S16LSB:
                 case AUDIO_S16MSB:
-                        if ( ((obtained.format == AUDIO_S16LSB) &&
-                             (SDL_BYTEORDER == SDL_LIL_ENDIAN)) ||
-                             ((obtained.format == AUDIO_S16MSB) &&
-                             (SDL_BYTEORDER == SDL_BIG_ENDIAN)) ) {
-                                /* Supported */
-                                break;
-                        }
-                        /* Unsupported, fall through */;
+                        /* Supported */
+                        break;
                 default:
                         /* Not supported -- force SDL to do our bidding */
+                        #ifdef __MINGW32__
+                        usleep(500000); // SDL_CloseAudio() hangs if you close too soon after open
+                        #endif
                         SDL_CloseAudio();
                         if ( SDL_OpenAudio(&desired, NULL) < 0 ) {
                                 printf("Couldn't open SDL audio: %s\n",
