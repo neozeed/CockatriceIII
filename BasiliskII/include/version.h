@@ -22,9 +22,9 @@
 #define VERSION_H
 
 const int VERSION_MAJOR = 0;
-const int VERSION_MINOR = 4;
-const char VERSION_RELEASE = 'g';
+const int VERSION_MINOR = 5;
+const char VERSION_RELEASE = 'a';
 
-#define VERSION_STRING "Cockatrice III 0.4g"
+#define VERSION_STRING "Cockatrice III 0.5a"
 
 #endif
