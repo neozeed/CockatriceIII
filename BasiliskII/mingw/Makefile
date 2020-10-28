@@ -14,8 +14,8 @@ man1dir = $(mandir)/man1
 
 CC = gcc
 CXX = c++
-CFLAGS = -g -Ofast
-CXXFLAGS = -g -Ofast
+CFLAGS = -g -Os
+CXXFLAGS = -g -Os
 CPPFLAGS =  -I../include -I. -I../uae_cpu
 #DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DREGPARAM="__attribute__((regparm(3)))" -DX86_ASSEMBLY -D_REENTRANT -DDATADIR=\"$(datadir)/$(APP)\"
 #DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DX86_ASSEMBLY -D_REENTRANT -DFPU_IEEE  #-DFPU_X86 -DFPU_UAE 
