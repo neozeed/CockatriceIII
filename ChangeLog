@@ -1,3 +1,8 @@
+v0.5a 28.Oct.2020
+	- Added a SDL audio fix from rakslice
+	- Added the ability to subtract from the clock to go to 1998
+	- Rebuilt using GCC 8.1.0 on MinGW.  Changed flags to -Os
+
 v0.4g 15.May.2016
 	- Fixed some stupid mappings in the keyboard
 	- Just forced the sound to 16bit 44100, and tested with Quicktime & 

@@ -1,12 +1,61 @@
-This is the fourth public version of Cockatrice
+This is the fifth public version of Cockatrice (update six?)
+
+This version is compiled with GCC 8.1.0 with the -Os flag, as distributed as:
+i686-8.1.0-win32-sjlj-rt_v6-rev0
 
  **** THERE IS A BUG IN PARSING PREF FILES, PUT AN EMPTY LINE or a HASH as the 
 last entry, and everything will be fine!!!!!!!!!!!!!! ****
 
-Enclosed is two executables, and the SDL dll that I'm using 
-(although there is nothing special about it).
+WHATS NEW?  Well the bigges thing is a SDL sound change from rakslice fixing
+audio playback of when MacOS would pick strange formats, and not trying to match
+it, but forcing SDL to stick to one format as needed.  Real Audio, Retrun to Zork,
+and many more games now work (Including flash player, KHAAAN!!!)
 
-What is new in this release of Cockatrice, is that it greatly improves
+I also added the ability to force the clock behind allowing timebombed installers
+to live like it's 1998
+
+Ive tried to iron out a few prefs bugs, so some of the mysterious 
+crashing should be over.  Ive also integrated DrMinGW in this Win32
+build to dump out some debug logs if there is any issues.  I've also change
+the GCC to build -Ofast as the new recommended level for building neutral
+fast applications, and include all the debug information.
+Because it's compiled in, it won't upset your normal JIT debugger (assuming
+you even have one).
+
+In any event, if you are having issues, give me the CPU type, OS, and 
+the rpt file, and I can at least have a guess as to why it's crashing.
+
+Enclosed is two executables, the SDL dll that I'm using 
+(although there is nothing special about it), and all the DLLs associated
+with Dr MinGW.
+
+08/22/2013  05:03 AM           124,520 symsrv.dll
+02/20/2014  10:13 AM         1,256,112 dbghelp.dll
+11/12/2015  06:49 AM           216,064 mgwhelp.dll
+11/12/2015  06:49 AM            23,040 exchndl.dll
+12/19/2018  01:49 PM           339,968 SDL.dll
+03/24/2010  11:32 AM           224,768 qemu-img.exe
+02/10/2016  01:01 AM            35,790 ethlist.exe
+10/28/2020  01:46 PM         3,914,844 CockatriceIII.exe
+
+To create a new disk image, I've enclosed the qemu-img program.
+Just run it something like this:
+
+qemu-img.exe create -f raw scsi0.disk 2000M
+
+and it'll create a 2,000 MB file suitable for Cockatrice III
+
+To further aid people in getting started I threw in a minimal
+System 7 & System 8 install in the archive directory.
+
+10/02/2016  01:09 AM           300,061 blank_2gb.7z
+09/02/2016  11:53 PM         1,896,688 min7.7z
+09/02/2016  11:59 PM         8,868,401 min8.7z
+
+These will extract out to scsi0.disk, so don't overwrite that unless
+you want to.
+
+The previous release of Cockatrice, greatly improved
 networking speed and stability.  I can now copy several GB worth of 
 data over AppleTalk, while before this was dreadfully slow and unstable.
 I've also started to expand the SCSI code to better support the buffer
@@ -35,24 +84,34 @@ bootdisk 6
 And this will ensure that the CD-ROM gets boot priority.  I've found that
 the Macintosh Quadra 800 ROM is the best for running System 7 and 8.
 
-My config is as follows:
+My BasiliskII_Prefs is as follows:
 
-ramsize 134217728
-frameskip 2
-scsi0 2gig.scsi
-disk transfer.hfv
+-------------------------------------------------------------------
+#screen win/1152/870
+screen win/1000/600
+#ether slirp
+ether {FFFFFFFF-FFFF-7777-FFFF-FFFFFFFFFFFF}
+rom Quadra800.rom
+bootdrive 0
 bootdriver -33
-bootdisk 0
-screen win/800/600
-ether \Device\NPF_{FFFFFFFF-FFFF-7777-FFFF-FFFFFFFFFFFF}
-modelid	29
-rom	Quadra800.rom
-cpu	4
-fpu	false
-nocdrom true
+#ramsize 67108864
+ramsize 268435456
+frameskip 2
+modelid 29
+cpu 4
+fpu true
+nocdrom false
 nosound false
-nogui true
-idlewait true
+nogui false
+idlewait false
+scsi0 OS7.disk
+scsi6 CDUtils.iso
+disk xfer.dsk
+#disk rtz.disk
+yearoffset 7
+#
+-------------------------------------------------------------------
+
 
 This way my SCSI disk boots instead of trying to boot from the 
 transfer.hfv volume, which is the default behavour.
@@ -63,6 +122,7 @@ Another 'feature' is that for 68040 emulation you can now disable the
 numerical coprocessor.  You may find this desierable as it is quite buggy
 and things like the scrollbars will function in OS 8.
 
+= Networking
 As always, pcap is present, This will allow you to  use native networking.  
 Although this is more geared to wired networking.  For wireless, use SLiRP.  
 There is no tun/tap networking in this version.
@@ -74,7 +134,7 @@ network adapters available in your computer.
 C:\BasiliskII\mingw>ethlist.exe
 Network devices:
   Number       NAME                                     (Description)
-  0  \Device\NPF_{FFFFFFFF-FFFF-7777-FFFF-FFFFFFFFFFFF} (Local Area Connection)
+  0  {FFFFFFFF-FFFF-7777-FFFF-FFFFFFFFFFFF} (Local Area Connection)
 
 Press Enter to continue...
 
@@ -86,25 +146,30 @@ BasiliskII_Prefs file.
 
 In this example you would add the line:
 
-ether \Device\NPF_{6D96D148-9B3D-4AF6-9FC3-1B4987074978}
+ether {FFFFFFFF-FFFF-7777-FFFF-FFFFFFFFFFFF}
 
 And then you shold be good to go.
 
 When you start Cockatrice, you should then see something similar to this:
 
-C:\BasiliskII\mingw>BasiliskII.exe
-Basilisk II V0.8 by Christian Bauer et al.
+C:\BasiliskII\mingw>CockatriceIII.exe
+Basilisk II V0.5 by Christian Bauer et al.
 Reading ROM file...
-Setting up for a 68040, Without FPU and 32bit addressing
-SCSI Unit 0:2gig.scsi geometry: 63 sectors, 1999534 cylinders, 16 heads
-SCSI Unit 6:MacAddict_001_1996_09.iso
+Setting up for a 68040, With FPU and 32bit addressing
+SCSI Unit 0:scsi0.disk geometry: 50 sectors, 2621440 cylinders, 16 heads
 EtherInit with [PCAP]
-Pcap version [WinPcap version 4.1.3 (packet.dll version 4.1.0.2980), based on li
-bpcap version 1.0 branch 1_0_rel0b (20091008)]
-Ethernet address fe fd 00 00 70 58
+Pcap version [WinPcap version 4.1.3 (packet.dll version 10, 2, 0, 5002), based on libpcap version 1.0 branch 1_0_rel0b (20091008)]
+Ethernet address fe fd 00 00 6e 60
 Building packet filter.........!
-SDL_Audio inited 8bit, 8192Hz, 1 channels
+SDL_Audio inited 16bit, 44100Hz, 2 channels
+SDL_Video 600x1000 8bit deep/size 1
 Patching a 32-bit clean ROM (version $067c or higher)
+
+On Windows 10 with the newer pcap it will constantly print the following message:
+
+'FATAL Bad Memory Block.'
+
+However as far as I can tell this is 'cosmetic' aka non fatal message from WinPcap.
 
 
 Linux and OS X users just need to specify the name of their 
@@ -114,6 +179,7 @@ You may also need to run this as the root user.  In a future release I'll
 try a stab at the user mode support, although I think that is a Windows
 only thing.
 
+= SLiRP
 To use the SLiRP (ie user mode NAT) you simply use the statement
 
 ether slirp
@@ -151,3 +217,23 @@ to 5, and restrict the CPU to 3
 
 Various other ROMs either have booting issues from SCSI, or other errors that
 BasiliskII's ROM patches cannot compensate for.
+
+= Y2K and going back in time.
+Installers like RealAudio only work in the late 90's they will refuse to work.
+I added a config line of:
+yearoffset 0
+
+Change it to any number and it'll remove that many billion ticks away from
+the offset allowing you to travel back in time.
+As of 2020 a 7 sends me back to 1998.  Maybe if there is enough need I can
+refine it to setting the year/month/date...
+
+-------
+C:\Cockatrice\temp\Cockatrice-v0.0-5>gcc -v
+Using built-in specs.
+COLLECT_GCC=gcc
+COLLECT_LTO_WRAPPER=C:/Program\ Files\ (x86)/mingw-w64/i686-8.1.0-win32-sjlj-rt_v6-rev0/mingw32/bin/../libexec/gcc/i686-w64-mingw32/8.1.0/lto-wrapper.exe
+Target: i686-w64-mingw32
+Configured with: ../../../src/gcc-8.1.0/configure --host=i686-w64-mingw32 --build=i686-w64-mingw32 --target=i686-w64-mingw32 --prefix=/mingw32 --with-sysroot=/c/mingw810/i686-810-win32-sjlj-rt_v6-rev0/mingw32 --enable-shared --enable-static --enable-targets=all --enable-multilib --enable-languages=c,c++,fortran,lto --enable-libstdcxx-time=yes --enable-threads=win32 --enable-libgomp --enable-libatomic --enable-lto --enable-graphite --enable-checking=release --enable-fully-dynamic-string --enable-version-specific-runtime-libs --enable-sjlj-exceptions --disable-libstdcxx-pch --disable-libstdcxx-debug --enable-bootstrap --disable-rpath --disable-win32-registry --disable-nls --disable-werror --disable-symvers --with-gnu-as --with-gnu-ld --with-arch-32=i686 --with-arch-64=nocona --with-tune-32=generic --with-tune-64=core2 --with-libiconv --with-system-zlib --with-gmp=/c/mingw810/prerequisites/i686-w64-mingw32-static --with-mpfr=/c/mingw810/prerequisites/i686-w64-mingw32-static --with-mpc=/c/mingw810/prerequisites/i686-w64-mingw32-static --with-isl=/c/mingw810/prerequisites/i686-w64-mingw32-static --with-pkgversion='i686-win32-sjlj-rev0, Built by MinGW-W64 project' --with-bugurl=https://sourceforge.net/projects/mingw-w64 CFLAGS='-O2 -pipe -fno-ident -I/c/mingw810/i686-810-win32-sjlj-rt_v6-rev0/mingw32/opt/include -I/c/mingw810/prerequisites/i686-zlib-static/include -I/c/mingw810/prerequisites/i686-w64-mingw32-static/include' CXXFLAGS='-O2 -pipe -fno-ident -I/c/mingw810/i686-810-win32-sjlj-rt_v6-rev0/mingw32/opt/include -I/c/mingw810/prerequisites/i686-zlib-static/include -I/c/mingw810/prerequisites/i686-w64-mingw32-static/include' CPPFLAGS=' -I/c/mingw810/i686-810-win32-sjlj-rt_v6-rev0/mingw32/opt/include -I/c/mingw810/prerequisites/i686-zlib-static/include -I/c/mingw810/prerequisites/i686-w64-mingw32-static/include' LDFLAGS='-pipe -fno-ident -L/c/mingw810/i686-810-win32-sjlj-rt_v6-rev0/mingw32/opt/lib -L/c/mingw810/prerequisites/i686-zlib-static/lib -L/c/mingw810/prerequisites/i686-w64-mingw32-static/lib -Wl,--large-address-aware'
+Thread model: win32
+gcc version 8.1.0 (i686-win32-sjlj-rev0, Built by MinGW-W64 project)
