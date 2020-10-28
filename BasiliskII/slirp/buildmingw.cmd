@@ -1,8 +1,8 @@
 @echo off
 del /Q *.o
-del /Q slirpmingw.a
+del /Q libslirp.a
 gcc -c -Os -I. *.c
-ar rcs slirpmingw.a *.o
+ar rcs libslirp.a *.o
 del /Q *.o
 echo "tada!?"
-dir slirpmingw.a
+dir libslirp.a

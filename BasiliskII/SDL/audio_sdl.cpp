@@ -304,7 +304,7 @@ void audio_set_main_mute(bool mute)
 
 void audio_set_main_volume(uint32 vol)
 {
- printf("audio_set_main_volume %d\n",vol);
+// printf("audio_set_main_volume %d\n",vol);
 }
 
 void audio_set_speaker_mute(bool mute)

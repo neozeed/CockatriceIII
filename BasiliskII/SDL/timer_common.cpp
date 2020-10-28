@@ -56,6 +56,7 @@ void Microseconds(uint32 &hi, uint32 &lo)
 
 uint32 TimerDateTime(void)
 {
+	extern int yearoffset;
 	time_t utc_now = time(NULL);
 #if defined(__linux__) || defined(__SVR4)
 	long tz = timezone;
@@ -67,7 +68,7 @@ uint32 TimerDateTime(void)
 #else
 	time_t local_now = utc_now;
 #endif
-	return (uint32)local_now + TIME_OFFSET;
+	return (uint32)local_now + TIME_OFFSET - ( yearoffset * 100000000);
 }
 
 

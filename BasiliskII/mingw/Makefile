@@ -14,14 +14,14 @@ man1dir = $(mandir)/man1
 
 CC = gcc
 CXX = c++
-CFLAGS = -g -Os
-CXXFLAGS = -g -Os
+CFLAGS = -g -Os -ISDL -Ipcap
+CXXFLAGS = -g -Os -ISDL -Ipcap
 CPPFLAGS =  -I../include -I. -I../uae_cpu
 #DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DREGPARAM="__attribute__((regparm(3)))" -DX86_ASSEMBLY -D_REENTRANT -DDATADIR=\"$(datadir)/$(APP)\"
 #DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -DX86_ASSEMBLY -D_REENTRANT -DFPU_IEEE  #-DFPU_X86 -DFPU_UAE 
 DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -D_REENTRANT -DFPU_IEEE -D_FILE_OFFSET_BITS=64
 LDFLAGS = 
-LIBS = ..\slirp\libslirp.a -lSDL -lws2_32  -liphlpapi  ..\drmingw-0.7.7-win32\lib\libexchndl.a
+LIBS = ..\slirp\libslirp.a -Llibs -lSDL -lws2_32  -liphlpapi  ..\drmingw-0.7.7-win32\lib\libexchndl.a -static-libgcc -static-libstdc++
 SYSSRCS = ../pcap/sdl_pcap.cpp ../dummy/scsi_dummy.cpp audio_sdl.cpp  ../dummy/prefs_editor_dummy.cpp 
 CPUSRCS = ../uae_cpu/basilisk_glue.cpp ../uae_cpu/memory.cpp ../uae_cpu/newcpu.cpp ../uae_cpu/readcpu.cpp cpustbl.cpp cpudefs.cpp cpuemu.cpp
 #FPUSRCS = ../uae_cpu/fpu/fpu_uae.cpp
@@ -49,8 +49,8 @@ APP = CockatriceIII.exe
 all: $(APP)
 
 OBJ_DIR = obj
-$(OBJ_DIR)::
-	@[ -d $(OBJ_DIR) ] || mkdir $(OBJ_DIR) > /dev/null 2>&1
+#$(OBJ_DIR)::
+#	@[ -d $(OBJ_DIR) ] || mkdir $(OBJ_DIR) > /dev/null 2>&1
 
 define SRCS_LIST_TO_OBJS
 	$(addprefix $(OBJ_DIR)/, $(addsuffix .o, $(foreach file, $(SRCS), \
@@ -85,7 +85,8 @@ uninstall:
 	rmdir $(datadir)/$(APP)
 
 mostlyclean:
-	rm -f $(APP) $(OBJ_DIR)/* core* *.core *~ *.bak
+	rm -f $(APP) $(OBJ_DIR)/*.o $(OBJ_DIR)/*.exe core* *.core *~ *.bak
+	rm -f *.o
 
 clean: mostlyclean
 	rm -f cpuemu.cpp cpudefs.cpp cputmp*.s cpufast*.s cpustbl.cpp cputbl.h
@@ -115,7 +116,9 @@ $(OBJ_DIR)/build68k.exe: $(OBJ_DIR)/build68k.o
 $(OBJ_DIR)/gencpu.exe: $(OBJ_DIR)/gencpu.o $(OBJ_DIR)/readcpu.o $(OBJ_DIR)/cpudefs.o
 	$(CC) $(LDFLAGS) -o $(OBJ_DIR)/gencpu.exe $(OBJ_DIR)/gencpu.o $(OBJ_DIR)/readcpu.o $(OBJ_DIR)/cpudefs.o
 cpudefs.cpp: $(OBJ_DIR)/build68k.exe ../uae_cpu/table68k
-	$(OBJ_DIR)/build68k.exe <../uae_cpu/table68k >cpudefs.cpp
+#depends on where your slashes go...
+	$(OBJ_DIR)\build68k.exe < ..\uae_cpu\table68k > cpudefs.cpp
+#	$(OBJ_DIR)/build68k.exe <../uae_cpu/table68k >cpudefs.cpp
 cpustbl.cpp: cpuemu.cpp
 cputbl.h: cpuemu.cpp
 

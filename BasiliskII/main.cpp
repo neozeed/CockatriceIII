@@ -59,6 +59,7 @@ static void mon_write_byte_b2(uint32 adr, uint32 b)
 /*
  *  Initialize everything, returns false on error
  */
+int yearoffset;	//offset the clock by how many billion ticks
 
 bool InitAll(void)
 {
@@ -67,6 +68,10 @@ bool InitAll(void)
 		ErrorAlert(GetString(STR_UNSUPPORTED_ROM_TYPE_ERR));
 		return false;
 	}
+
+	yearoffset = PrefsFindInt16("yearoffset");
+if(yearoffset>0)
+printf("Offsetting the year by %d billion ticks\n",yearoffset);
 
 #if EMULATED_68K
 	// Set CPU and FPU type (UAE emulation)

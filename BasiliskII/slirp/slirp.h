@@ -335,8 +335,8 @@ extern int do_echo;
 # define insque_32 insque
 # define remque_32 remque
 #else
- extern inline void insque_32 _P((void *, void *));
- extern inline void remque_32 _P((void *));
+extern inline void insque_32 _P((void *, void *));
+extern inline void remque_32 _P((void *));
 #endif
 
 #ifndef _WIN32

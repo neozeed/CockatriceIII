@@ -60,6 +60,7 @@ prefs_desc common_prefs_items[] = {
 	{"nosound", TYPE_BOOLEAN, false},	// Don't enable sound output (audio_*.cpp)
 	{"nogui", TYPE_BOOLEAN, false},		// Disable GUI (main_*.cpp)
 	{"idlewait",TYPE_BOOLEAN,true},		// enable idle..
+	{"yearoffset",TYPE_INT16,false},	// remove x billion seconds from the clock
 	{NULL, TYPE_END, false}	// End of list
 };
 
@@ -100,6 +101,7 @@ void PrefsInit(void)
 	PrefsAddString("screen","win/1152/870");	//fantastic monitor for the era
 	PrefsAddString("rom","Quadra800.rom");
 	PrefsAddString("ether","slirp");
+	PrefsAddInt16("yearoffset",0);
 	AddPlatformPrefsDefaults();
 
 	// Load preferences from settings file
