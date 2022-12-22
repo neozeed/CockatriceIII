@@ -37,7 +37,7 @@
 # include <unistd.h>
 #endif
 
-#include <winsock.h>
+#include <winsock2.h>
 //#include <netinet/in.h>
 #include <assert.h>
 #include <stdio.h>
