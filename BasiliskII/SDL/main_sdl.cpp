@@ -99,10 +99,14 @@ int main(int argc, char *argv[])
 	//fixstdio();
 
 	// Print some info
-	printf(GetString(STR_ABOUT_TEXT1), VERSION_MAJOR, VERSION_MINOR);
+	printf("Cockatrice III version %d.%d based on:\n",VERSION_MAJOR, VERSION_MINOR);
+	printf(GetString(STR_ABOUT_TEXT1), 0, 8);
 	printf(" %s\n", GetString(STR_ABOUT_TEXT2));
+	#ifdef __GNUC__
+		printf("compiled by GCC %s at %s\n",__VERSION__,__TIMESTAMP__);
+	#endif
 	fflush(stdout);
-
+	
 	// Parse arguments
 	for (int i=1; i<argc; i++) {
 		if (strcmp(argv[i], "-break") == 0 && ++i < argc)
