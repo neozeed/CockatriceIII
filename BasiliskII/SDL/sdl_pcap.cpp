@@ -354,7 +354,7 @@ void EtherInit(void)
 		char filter_exp[255];
 		printf("Building packet filter...");
 		sprintf(filter_exp,"( ((ether broadcast) or (ether multicast) or (ether dst %02x:%02x:%02x:%02x:%02x:%02x)) and not (ether src %02x:%02x:%02x:%02x:%02x:%02x) )", \
-		ether_addr[0], ether_addr[1], ether_addr[2], ether_addr[3], ether_addr[4], ether_addr[5]	\
+		ether_addr[0], ether_addr[1], ether_addr[2], ether_addr[3], ether_addr[4], ether_addr[5],	\
 		ether_addr[0], ether_addr[1], ether_addr[2], ether_addr[3], ether_addr[4], ether_addr[5]);
 
 		//I'm doing a MAC level filter so TCP/IP doesn't matter.
