@@ -10,12 +10,12 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "superglobalmegacorp.com"
       VALUE "FileDescription", "Cockatrice III"
-      VALUE "FileVersion", "0.5a"
+      VALUE "FileVersion", "0.5g"
       VALUE "InternalName", "cockatrice"
       VALUE "LegalCopyright", "Super Global Mega Corp"
       VALUE "OriginalFilename", "CockatriceIII.exe"
       VALUE "ProductName", "Cockatrice III"
-      VALUE "ProductVersion", "0.5a"
+      VALUE "ProductVersion", "0.5g"
     END
   END
 

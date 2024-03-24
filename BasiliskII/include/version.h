@@ -23,8 +23,8 @@
 
 const int VERSION_MAJOR = 0;
 const int VERSION_MINOR = 5;
-const char VERSION_RELEASE = 'a';
+const char VERSION_RELEASE = 'g';
 
-#define VERSION_STRING "Cockatrice III 0.5a"
+#define VERSION_STRING "Cockatrice III 0.5g"
 
 #endif
