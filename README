@@ -74,6 +74,29 @@ any disk.  You can find it at:
 
 https://sourceforge.net/projects/cockatrice/files/Utils/
 
+Sony MDH-10 MD-DATA drive
+-------------------------
+Any SCSI ID from 0 to 6 can be a Sony MDH-10 MiniDisc MD-DATA drive instead of
+a disk.  Give it a disc image with:
+
+mdh10_3 <mddata image>
+mdh10model MDH-10        (optional; MDH-10 is the default, or MDM110)
+
+The image is a raw 2048-byte-per-sector dump of the disc (70464 sectors,
+144310272 bytes, e.g. an Aaru dump of an MD-DATA disc).  If the file does not
+exist a blank, unformatted disc is created; format it from the Mac.  The disc
+U-TOC is kept next to the image as <image>.utoc.  A read-only image file is a
+write-protected disc.
+
+Install "MD Driver", "MD File System" and "File System Manager" from Sony's
+MD DATA software for Macintosh (version 1.81) into the System Folder.  The
+disc mounts as an MD DATA volume.  Dragging it to the Trash ejects it.
+Press Ctrl-F2 to insert the disc again.
+
+Set the environment variable MDH10_DEBUG to log every SCSI command sent to the
+drive.  The "SCSI Manager 4.3" extension drives real SCSI hardware, so remove
+it from the System Folder if the drive is not found.
+
 I highly recommend using it if you are starting for the first time.  To
 force your virtual MAC to boot from the CD use the statements:
 

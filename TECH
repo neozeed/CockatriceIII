@@ -330,6 +330,33 @@ one data block is being transmitted. Some more advanced (but rarely used)
 aspects of the SCSI Manager (like messaging and compare operations) are not
 emulated.
 
+In Cockatrice III the SCSI targets are emulated in software by
+"dummy/scsi_dummy.cpp" (image-backed disks, and a CD-ROM on ID 6). A target can
+instead be a Sony MDH-10 / MDM-110 MD-DATA drive, emulated by "scsi/scsi_mdh10.cpp"
+(selected with the "mdh10_<id>" prefs item). The MD-DATA model is self contained
+(stdio only) and returns a status byte plus a data buffer per CDB; scsi_dummy.cpp
+gathers the S/G list for data-out and scatters only the bytes actually returned
+for data-in, zero-filling the rest of the initiator's buffer.
+
+The MD-DATA emulation implements what the Sony drivers (Mac "MD Driver" 1.81,
+DOS/Win95 MDMGR) use, reconstructed from bus captures of a real drive:
+ - INQUIRY "SONY    MDH-10          1.11" (or MDM110 1.01), type 0x10, removable
+ - TEST UNIT READY, REQUEST SENSE (18-byte fixed sense, bare sense key in byte
+   2), READ/WRITE(6/10), WRITE AND VERIFY, VERIFY, READ CAPACITY (70464 x 2048),
+   SEEK, PREVENT/ALLOW, START STOP (LoEj ejects), SYNCHRONIZE/LOCK CACHE,
+   PRE-FETCH, FORMAT UNIT (immediate with TUR progress 02/04/04, or synchronous)
+ - MODE SENSE/SELECT(6) pages 01, 08, 20, 21 (captured defaults, persistent)
+ - vendor D1/D2 (read/write U-TOC, 2336-byte sectors), D4 (P-TOC "MINX"),
+   D5 (format result), D8 (data track: 01 .. 00 00 04 00 when the U-TOC has an
+   MD-DATA data track), D6/D7 and PLAY AUDIO commands as no-ops
+ - UNIT ATTENTION 06/28/00 after power-on/insertion, 02/3A/00 without medium,
+   07/27/00 when the image file is read-only (write-protected disc)
+Logical block n of the disc is at offset n * 2048 of the image (the layout of a
+raw dump of the drive); the U-TOC lives in "<image>.utoc". Setting the
+environment variable MDH10_DEBUG traces every command to stderr. The device is
+unit tested on the host by scsi/tests/test_mdh10.cpp, and
+scsi/tests/test_mdh10_replay.py replays Bus Hound captures of the real drive.
+
 6.7. Video driver
 -----------------
 
