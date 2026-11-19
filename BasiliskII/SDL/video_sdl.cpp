@@ -15,6 +15,7 @@
 
 #define DEBUG 0
 #include "debug.h"
+#include "../scsi/scsi_mdh10.h"
 
 #include <SDL/SDL.h>
 static SDL_Surface *SDLscreen = NULL;
@@ -496,7 +497,7 @@ static int kc_decode(SDL_keysym const & ks, bool key_down)
 
 	//case SDLK_F1: if (is_ctrl_down(ks)) {if (!key_down) SysMountFirstFloppy(); return -2;} else return 0x7a;
 	case SDLK_F1: return 0x7a;
-	case SDLK_F2: return 0x78;
+	case SDLK_F2: if (is_ctrl_down(ks)) {if (!key_down) mdh10_request_insert(); return -2;} else return 0x78;	// Ctrl-F2: insert MD-DATA disc
 	case SDLK_F3: return 0x63;
 	case SDLK_F4: return 0x76;
 	//case SDLK_F5: if (is_ctrl_down(ks)) {if (!key_down) drv->toggle_mouse_grab(); return -2;} else return 0x60;
