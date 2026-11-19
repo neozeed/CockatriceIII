@@ -31,6 +31,7 @@ The excellent NeXT machine emulator!
 #include "sysdeps.h"
 #include "prefs.h"
 #include "scsi.h"
+#include "../scsi/scsi_mdh10.h"
 
 #define DEBUG 0
 #include "debug.h"
@@ -337,6 +338,8 @@ uint8 *sense_buffer = NULL;		// Buffer for autosense data
 
 int target=0;	//the current target.
 
+static MDH10Device *mdh10_dev[ESP_MAX_DEVS];	// emulated Sony MDH-10 MD-DATA drives
+
 
 
 
@@ -360,8 +363,23 @@ char prefs_name[16];
 //	memset(scsi_buffer.data,0x0,sizeof(scsi_buffer.data));
 
 
+	memset(mdh10_dev,0x0,sizeof(mdh10_dev));
+	const char *mdh10_model = PrefsFindString("mdh10model");
+
 	for(count=0;count<7;count++)
 	{
+	// Sony MDH-10 MD-DATA drive on this ID?
+	sprintf(prefs_name,"mdh10_%d",count);
+	const char *mdpath = PrefsFindString(prefs_name);
+	if(mdpath!=NULL) {
+		mdh10_dev[count]=mdh10_open(mdpath, mdh10_model);
+		if(mdh10_dev[count]!=NULL)
+			printf("SCSI Unit %d: Sony MD-DATA drive, disc image %s\n",count,mdpath);
+		else
+			printf("Error opening up MD-DATA image [%s]\n",mdpath);
+		continue;
+		}
+
 	sprintf(prefs_name,"scsi%d",count);
 	const char *str = PrefsFindString(prefs_name);
 	if(str!=NULL) {
@@ -406,9 +424,14 @@ void SCSIExit(void)
 int count;
 printf("SCSIExit\n");
 
-for(count=0;count<7;count++)
+for(count=0;count<7;count++) {
 	if (SCSIdisk[count].dsk!=NULL)
 		fclose(SCSIdisk[count].dsk);
+	if (mdh10_dev[count]!=NULL) {
+		mdh10_close(mdh10_dev[count]);
+		mdh10_dev[count]=NULL;
+		}
+	}
 }
 
 
@@ -450,6 +473,10 @@ scsi_CmdLength = cmd_length;
 
 bool scsi_is_target_present(int id)
 {
+if(id<0 || id>=ESP_MAX_DEVS)	// ID 7 is the Mac itself
+	return false;
+if(mdh10_dev[id]!=NULL)
+	return true;
 if(SCSIdisk[id].dsk!=NULL)
 	return true;
 else
@@ -465,7 +492,9 @@ bool scsi_set_target(int id, int lun)
 {
 D(bug("dummy: scsi_set_target %d %d\n",id,lun));
 
-if( (SCSIdisk[id].dsk!=NULL)&&(lun==0))	{	//for now we only do LUN 0.
+if(id<0 || id>=ESP_MAX_DEVS)
+	return false;
+if( (SCSIdisk[id].dsk!=NULL || mdh10_dev[id]!=NULL)&&(lun==0))	{	//for now we only do LUN 0.
 	target=id;	//globals. oh my.
 	return true;
 	}
@@ -499,8 +528,49 @@ D(bug("growing new buffer\n"));
  *  read/write data according to S/G table (returns false on error)
  */
 
+// Sony MDH-10: the device model produces/consumes a contiguous buffer
+static bool mdh10_send_cmd(MDH10Device *dev, size_t data_length, bool reading, int sg_size, uint8 **sg_ptr, uint32 *sg_len, uint16 *stat)
+{
+	const uint8 *out = NULL;
+	uint32 out_len = 0;
+
+	if (!reading && data_length) {
+		if (!try_buffer(data_length))
+			return false;
+		uint8 *buffer_ptr = buffer;
+		for (int i=0; i<sg_size; i++) {
+			memcpy(buffer_ptr, sg_ptr[i], sg_len[i]);
+			buffer_ptr += sg_len[i];
+		}
+		out = buffer;
+		out_len = data_length;
+	}
+
+	const uint8_t *in = NULL;
+	uint32_t in_len = 0;
+	*stat = mdh10_command(dev, cmd_buffer, scsi_CmdLength, out, out_len, &in, &in_len);
+
+	// Scatter what the device returned; zero the rest of the initiator's buffer
+	if (reading) {
+		uint32 pos = 0;
+		for (int i=0; i<sg_size; i++) {
+			uint32 len = sg_len[i];
+			uint32 n = (pos < in_len) ? ((in_len - pos < len) ? in_len - pos : len) : 0;
+			if (n)
+				memcpy(sg_ptr[i], in + pos, n);
+			if (n < len)
+				memset(sg_ptr[i] + n, 0, len - n);
+			pos += len;
+		}
+	}
+	return true;
+}
+
 bool scsi_send_cmd(size_t data_length, bool reading, int sg_size, uint8 **sg_ptr, uint32 *sg_len, uint16 *stat, uint32 timeout)
 {
+	if (target>=0 && target<ESP_MAX_DEVS && mdh10_dev[target]!=NULL)
+		return mdh10_send_cmd(mdh10_dev[target], data_length, reading, sg_size, sg_ptr, sg_len, stat);
+
 
 	// Check if buffer is large enough, allocate new buffer if needed
 	if (!try_buffer(data_length)) {

@@ -839,6 +839,10 @@
 			>
 		</File>
 		<File
+			RelativePath="..\scsi\scsi_mdh10.cpp"
+			>
+		</File>
+		<File
 			RelativePath="..\pcap\sdl_pcap.cpp"
 			>
 		</File>

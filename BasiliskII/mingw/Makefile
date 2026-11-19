@@ -22,7 +22,7 @@ CPPFLAGS =  -I../include -I. -I../uae_cpu
 DEFS = -DHAVE_CONFIG_H -DENABLE_MON=0 -D_REENTRANT -DFPU_IEEE -D_FILE_OFFSET_BITS=64
 LDFLAGS = 
 LIBS = ..\slirp\libslirp.a -Llibs -lSDL -lws2_32  -liphlpapi  ..\drmingw-0.7.7-win32\lib\libexchndl.a -static-libgcc -static-libstdc++
-SYSSRCS = ../pcap/sdl_pcap.cpp ../dummy/scsi_dummy.cpp audio_sdl.cpp  ../dummy/prefs_editor_dummy.cpp 
+SYSSRCS = ../pcap/sdl_pcap.cpp ../dummy/scsi_dummy.cpp ../scsi/scsi_mdh10.cpp audio_sdl.cpp  ../dummy/prefs_editor_dummy.cpp 
 CPUSRCS = ../uae_cpu/basilisk_glue.cpp ../uae_cpu/memory.cpp ../uae_cpu/newcpu.cpp ../uae_cpu/readcpu.cpp cpustbl.cpp cpudefs.cpp cpuemu.cpp
 #FPUSRCS = ../uae_cpu/fpu/fpu_uae.cpp
 #FPUSRCS = ../uae_cpu/fpu/fpu_x86.cpp

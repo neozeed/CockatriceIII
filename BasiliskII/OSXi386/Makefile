@@ -23,7 +23,7 @@ CPPFLAGS =  -I../include -I. -I../uae_cpu -I../Unix
 DEFS = -DHAVE_CONFIG_H  -DX86_ASSEMBLY -D_REENTRANT -DREGPARAM="__attribute__((regparm(3)))" -DFPU_IEEE
 LDFLAGS = 
 LIBS = ../slirp/slirp106i386.a -lpthread -framework SDL -framework cocoa 
-SYSSRCS = sdlmain.m ../SDL/sdl_pcap.cpp ../sdl/audio_sdl.cpp ../dummy/scsi_dummy.cpp  ../dummy/prefs_editor_dummy.cpp 
+SYSSRCS = sdlmain.m ../SDL/sdl_pcap.cpp ../sdl/audio_sdl.cpp ../dummy/scsi_dummy.cpp ../scsi/scsi_mdh10.cpp  ../dummy/prefs_editor_dummy.cpp 
 CPUSRCS = ../uae_cpu/basilisk_glue.cpp ../uae_cpu/memory.cpp ../uae_cpu/newcpu.cpp ../uae_cpu/readcpu.cpp ../uae_cpu/fpu/fpu_ieee.cpp cpustbl.cpp cpudefs.cpp cpuemu.cpp
 INSTALL = /usr/bin/install -c
 INSTALL_PROGRAM = ${INSTALL} -s
