@@ -44,6 +44,14 @@ prefs_desc common_prefs_items[] = {
 	{"scsi4", TYPE_STRING, false},
 	{"scsi5", TYPE_STRING, false},
 	{"scsi6", TYPE_STRING, false},
+	{"mdh10_0", TYPE_STRING, false},	// Sony MDH-10 MD-DATA drive disc image for SCSI ID 0..6 (scsi_mdh10.cpp)
+	{"mdh10_1", TYPE_STRING, false},
+	{"mdh10_2", TYPE_STRING, false},
+	{"mdh10_3", TYPE_STRING, false},
+	{"mdh10_4", TYPE_STRING, false},
+	{"mdh10_5", TYPE_STRING, false},
+	{"mdh10_6", TYPE_STRING, false},
+	{"mdh10model", TYPE_STRING, false},	// "MDH-10" (default) or "MDM110"
 	{"screen", TYPE_STRING, false},		// Video mode (video.cpp)
 	{"seriala", TYPE_STRING, false},	// Device name of Mac serial port A (serial_*.cpp)
 	{"serialb", TYPE_STRING, false},	// Device name of Mac serial port B (serial_*.cpp)
